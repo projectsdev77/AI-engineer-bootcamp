@@ -8,6 +8,7 @@ import SignupPage from '@/pages/public/SignupPage'
 import DashboardPage from '@/pages/student/DashboardPage'
 import WeekPage from '@/pages/student/WeekPage'
 import LessonPage from '@/pages/student/LessonPage'
+import AssignmentPage from '@/pages/student/AssignmentPage'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/weeks/:weekId" element={<WeekPage />} />
             <Route path="/weeks/:weekId/lessons/:lessonId" element={<LessonPage />} />
+            <Route path="/weeks/:weekId/assignments/:assignmentId" element={<AssignmentPage />} />
 
             <Route element={<RequireRole roles={['mentor']} />}>
               {/* mentor routes added in a later task */}
