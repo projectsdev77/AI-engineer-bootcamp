@@ -9,6 +9,7 @@ import DashboardPage from '@/pages/student/DashboardPage'
 import WeekPage from '@/pages/student/WeekPage'
 import LessonPage from '@/pages/student/LessonPage'
 import AssignmentPage from '@/pages/student/AssignmentPage'
+import ExceptionQueuePage from '@/pages/shared/ExceptionQueuePage'
 
 function App() {
   return (
@@ -27,11 +28,13 @@ function App() {
             <Route path="/weeks/:weekId/assignments/:assignmentId" element={<AssignmentPage />} />
 
             <Route element={<RequireRole roles={['mentor']} />}>
-              {/* mentor routes added in a later task */}
+              <Route path="/mentor/queue" element={<ExceptionQueuePage />} />
+              {/* remaining mentor routes added in a later task */}
             </Route>
 
             <Route element={<RequireRole roles={['admin']} />}>
-              {/* admin routes added in a later task */}
+              <Route path="/admin/queue" element={<ExceptionQueuePage />} />
+              {/* remaining admin routes added in a later task */}
             </Route>
           </Route>
         </Routes>

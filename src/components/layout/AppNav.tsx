@@ -12,12 +12,12 @@ export default function AppNav() {
         </Link>
         <div className="flex items-center gap-5">
           {profile?.role === 'mentor' && (
-            <Link to="/mentor" className="text-sm text-slate-600 hover:text-slate-900">
+            <Link to="/mentor/queue" className="text-sm text-slate-600 hover:text-slate-900">
               Mentor
             </Link>
           )}
           {profile?.role === 'admin' && (
-            <Link to="/admin" className="text-sm text-slate-600 hover:text-slate-900">
+            <Link to="/admin/queue" className="text-sm text-slate-600 hover:text-slate-900">
               Admin
             </Link>
           )}
