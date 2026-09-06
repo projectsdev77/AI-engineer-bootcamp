@@ -35,14 +35,18 @@ export function useMessageThread(studentId: string | undefined) {
   async function send(body: string) {
     if (!studentId || !user || !body.trim()) return
     setSending(true)
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('messages')
       .insert({ student_id: studentId, sender_id: user.id, body: body.trim() })
+      .select()
+      .single()
     setSending(false)
     if (error) {
       setError(error.message)
       return
     }
+    // Fire-and-forget: a notification failure should never block sending.
+    supabase.functions.invoke('notify-message', { body: { messageId: data.id } }).catch(() => {})
     await refresh()
   }
 

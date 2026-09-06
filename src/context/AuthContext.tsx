@@ -13,6 +13,8 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  requestPasswordReset: (email: string) => Promise<{ error: string | null }>
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -55,11 +57,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function signUp(email: string, password: string, fullName: string) {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
     })
+    if (!error && data.user) {
+      // Fire-and-forget: a failed welcome email should never block signup.
+      supabase.functions.invoke('send-welcome-email', { body: { userId: data.user.id } }).catch(() => {})
+    }
     return { error: error?.message ?? null }
   }
 
@@ -86,6 +92,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function requestPasswordReset(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password/confirm`,
+    })
+    return { error: error?.message ?? null }
+  }
+
+  async function updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error: error?.message ?? null }
+  }
+
   const value: AuthContextValue = {
     session,
     user: session?.user ?? null,
@@ -96,6 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithGoogle,
     signOut,
     refreshProfile,
+    requestPasswordReset,
+    updatePassword,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -22,6 +22,9 @@ import StudentAdminDetailPage from '@/pages/admin/StudentAdminDetailPage'
 import BrokenLinksPage from '@/pages/admin/BrokenLinksPage'
 import CertificateEditorPage from '@/pages/admin/CertificateEditorPage'
 import CertificatePage from '@/pages/public/CertificatePage'
+import ResetPasswordRequestPage from '@/pages/public/ResetPasswordRequestPage'
+import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
+import SettingsPage from '@/pages/student/SettingsPage'
 
 function App() {
   return (
@@ -33,9 +36,12 @@ function App() {
           <Route path="/certificates/:code" element={<CertificatePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/reset-password" element={<ResetPasswordRequestPage />} />
+          <Route path="/reset-password/confirm" element={<ResetPasswordConfirmPage />} />
 
           <Route element={<RequireAuth />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/weeks/:weekId" element={<WeekPage />} />
             <Route path="/weeks/:weekId/lessons/:lessonId" element={<LessonPage />} />
             <Route path="/weeks/:weekId/assignments/:assignmentId" element={<AssignmentPage />} />

@@ -21,7 +21,9 @@ export default function AppNav() {
               Admin
             </Link>
           )}
-          <span className="text-sm text-slate-500">{profile?.full_name}</span>
+          <Link to="/settings" className="text-sm text-slate-500 hover:text-slate-900">
+            {profile?.full_name ?? 'Settings'}
+          </Link>
           <button onClick={() => void signOut()} className="text-sm text-slate-500 hover:text-slate-900">
             Log out
           </button>
