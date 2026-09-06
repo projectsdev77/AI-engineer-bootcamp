@@ -17,6 +17,9 @@ import CurriculumListPage from '@/pages/admin/CurriculumListPage'
 import WeekEditorPage from '@/pages/admin/WeekEditorPage'
 import LessonEditorPage from '@/pages/admin/LessonEditorPage'
 import AssignmentEditorPage from '@/pages/admin/AssignmentEditorPage'
+import StudentsListPage from '@/pages/admin/StudentsListPage'
+import StudentAdminDetailPage from '@/pages/admin/StudentAdminDetailPage'
+import BrokenLinksPage from '@/pages/admin/BrokenLinksPage'
 
 function App() {
   return (
@@ -47,7 +50,10 @@ function App() {
               <Route path="/admin/curriculum/lessons/:lessonId" element={<LessonEditorPage />} />
               <Route path="/admin/curriculum/assignments/:assignmentId" element={<AssignmentEditorPage />} />
               <Route path="/admin/queue" element={<ExceptionQueuePage />} />
-              {/* students/broken-links/certificate routes added in the next task */}
+              <Route path="/admin/students" element={<StudentsListPage />} />
+              <Route path="/admin/students/:studentId" element={<StudentAdminDetailPage />} />
+              <Route path="/admin/broken-links" element={<BrokenLinksPage />} />
+              {/* certificate route added in the next task */}
             </Route>
           </Route>
         </Routes>
