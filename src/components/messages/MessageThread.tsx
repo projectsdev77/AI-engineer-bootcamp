@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useMessageThread } from '@/hooks/useMessageThread'
+import { Field } from '@/components/ui/Field'
+import { Button } from '@/components/ui/Button'
 
 export default function MessageThread({ studentId }: { studentId: string }) {
   const { user } = useAuth()
@@ -8,24 +10,24 @@ export default function MessageThread({ studentId }: { studentId: string }) {
   const [draft, setDraft] = useState('')
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-panel border-2 border-ink bg-surface">
       <div className="max-h-96 space-y-3 overflow-y-auto p-4">
-        {loading && <p className="text-sm text-slate-400">Loading…</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading && <p className="font-mono text-xs font-bold uppercase text-muted">loading…</p>}
+        {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
         {!loading && messages.length === 0 && (
-          <p className="text-sm text-slate-400">No messages yet — say hello.</p>
+          <p className="text-[14.5px] text-muted">No messages yet — say hello.</p>
         )}
         {messages.map((m) => {
           const mine = m.sender_id === user?.id
           return (
             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                  mine ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-800'
+                className={`max-w-[75%] rounded-card border-2 border-ink px-3.5 py-2.5 text-[14.5px] ${
+                  mine ? 'bg-ink text-paper' : 'bg-paper text-ink'
                 }`}
               >
                 <p>{m.body}</p>
-                <p className={`mt-1 text-[10px] ${mine ? 'text-brand-100' : 'text-slate-400'}`}>
+                <p className={`mt-1 font-mono text-[10px] ${mine ? 'text-paper/50' : 'text-faint'}`}>
                   {new Date(m.created_at).toLocaleString()}
                 </p>
               </div>
@@ -40,21 +42,12 @@ export default function MessageThread({ studentId }: { studentId: string }) {
           void send(draft)
           setDraft('')
         }}
-        className="flex gap-2 border-t border-slate-200 p-3"
+        className="flex gap-2 border-t-2 border-ink p-3"
       >
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Write a message…"
-          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-        />
-        <button
-          type="submit"
-          disabled={sending || !draft.trim()}
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
+        <Field value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a message…" className="flex-1" />
+        <Button type="submit" variant="primary" disabled={sending || !draft.trim()}>
           Send
-        </button>
+        </Button>
       </form>
     </div>
   )

@@ -1,15 +1,197 @@
+/* Become an AI Engineer — design tokens
+   Tailwind v4. Nothing in the codebase should reference a color that is
+   not defined here. Handoff rev 1.0 · Sep 6 2026 */
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* self-hosted fonts — see "Before you start" in the handoff README */
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/archivo/400.css";
+@import "@fontsource/archivo/500.css";
+@import "@fontsource/archivo/600.css";
+@import "@fontsource/archivo/700.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
 @theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #2563eb;
-  --color-brand-600: #1d4ed8;
-  --color-brand-700: #1e40af;
-  --color-brand-900: #1e3a5f;
+  /* ---- ground + ink ---- */
+  --color-paper:     #FBF8EE; /* page background */
+  --color-stone:     #E7E5DE; /* alt band, disabled, table head */
+  --color-surface:   #FFFFFF; /* cards */
+  --color-ink:       #14141E; /* text + every border */
+  --color-ink-soft:  #1B1B26; /* nested dark surfaces (admin tab strip) */
+  --color-muted:     #5C5A52; /* secondary text */
+  --color-faint:     #8A887E; /* placeholder text */
+  --color-hairline:  #DDDBD2; /* 1px table rules */
+  --color-disabled:  #B8B6AD; /* locked borders */
+
+  /* ---- lime: primary action. one per view ---- */
+  --color-lime:      #D8FA4B;
+
+  /* ---- blue: links, focus, info. NEVER a button fill ---- */
+  --color-blue-50:   #EAF0FF;
+  --color-blue-200:  #C9D8FF;
+  --color-blue-500:  #2F6BFF; /* background / focus ring only */
+  --color-blue-700:  #1B44B8; /* blue TEXT on paper (7.4:1) */
+
+  /* ---- status: tinted bg + same-hue border + dark ink ---- */
+  --color-pass:      #2FBF71;
+  --color-pass-bg:   #E8F8EF;
+  --color-pass-ink:  #14432A;
+  --color-warn:      #FF6B2C;
+  --color-warn-bg:   #FFF1E9;
+  --color-warn-ink:  #8A3A10;
+  --color-fail:      #D6263C;
+  --color-fail-bg:   #FDE8EB;
+  --color-fail-ink:  #8A1220;
+
+  /* ---- accents: category codes only, never decoration ---- */
+  --color-blush:     #FFE0D2;
+  --color-lilac:     #B79CF7;
+
+  /* ---- type ---- */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-sans:    "Archivo", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* ---- shape ---- */
+  --radius-field: 10px;
+  --radius-card:  14px;
+  --radius-panel: 16px;
+  --radius-shell: 22px;
+
+  /* ---- elevation: hard offset only. never blur ---- */
+  --shadow-app:  4px 4px 0 var(--color-ink);
+  --shadow-site: 5px 5px 0 var(--color-ink);
+  --shadow-hero: 5px 5px 0 var(--color-lime);
 }
 
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+@layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--color-blue-700);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  a:hover { color: var(--color-blue-500); }
+
+  :focus-visible {
+    outline: 3px solid var(--color-blue-500);
+    outline-offset: 2px;
+  }
+
+  /* inputs never below 16px — iOS zooms the viewport below that */
+  input, textarea, select { font-size: 16px; }
+}
+
+@layer components {
+  /* Reference implementations. Match these or match the comps —
+     do not invent a third treatment. */
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 14px 24px;
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-field);
+    font-weight: 700; font-size: 15px;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out,
+                filter 120ms ease-out;
+  }
+  .btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--color-ink); }
+  .btn:hover  { filter: brightness(0.95); }
+
+  /* in-app primary */
+  .btn-primary { background: var(--color-lime); box-shadow: var(--shadow-app); }
+  /* marketing primary — ink fill, lime shadow */
+  .btn-site    { background: var(--color-ink); color: var(--color-paper);
+                 border-width: 3px; box-shadow: var(--shadow-hero); }
+  .btn-secondary { background: var(--color-paper); }
+  .btn-ghost   { background: var(--color-blue-50); color: var(--color-blue-700);
+                 border-color: var(--color-blue-200); }
+  .btn:disabled, .btn[aria-disabled="true"] {
+    background: var(--color-stone); color: var(--color-faint);
+    border-color: var(--color-disabled); box-shadow: none;
+    transform: none; cursor: not-allowed;
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px; border: 2px solid;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  }
+  .pill-pass     { background: var(--color-pass-bg); border-color: var(--color-pass); color: var(--color-pass-ink); }
+  .pill-warn     { background: var(--color-warn-bg); border-color: var(--color-warn); color: var(--color-warn-ink); }
+  .pill-fail     { background: var(--color-fail-bg); border-color: var(--color-fail); color: var(--color-fail-ink); }
+  .pill-locked   { background: var(--color-stone);   border-color: var(--color-disabled); color: var(--color-muted); }
+  .pill-progress { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-lime); }
+
+  .card {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-card);
+    padding: 22px;
+  }
+  .card-locked {
+    background: #F1F0EA; border-color: var(--color-disabled);
+    color: var(--color-muted);
+  }
+  /* at most ONE of these per viewport */
+  .card-active { box-shadow: var(--shadow-app); }
+
+  .field {
+    width: 100%; padding: 13px 16px; font-size: 16px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-field);
+  }
+  .field::placeholder { color: var(--color-faint); }
+  .field:focus {
+    border-color: var(--color-blue-500);
+    box-shadow: 0 0 0 3px var(--color-blue-200);
+    outline: none;
+  }
+  .field-error { border-color: var(--color-warn); }
+
+  .label {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .meta {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted);
+  }
+
+  .callout { border: 2px solid; border-radius: var(--radius-card); padding: 18px 20px; }
+  .callout-info { background: var(--color-blue-50); border-color: var(--color-blue-500); color: #26264A; }
+  .callout-pass { background: var(--color-pass-bg); border-color: var(--color-pass); color: var(--color-pass-ink); }
+  .callout-warn { background: var(--color-warn-bg); border-color: var(--color-warn); color: var(--color-warn-ink); }
+  .callout-fail { background: var(--color-fail-bg); border-color: var(--color-fail); color: var(--color-fail-ink); }
+
+  /* line-art illustration frame */
+  .ill-frame {
+    background: var(--color-paper);
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .ill-frame > svg, .ill-frame > img {
+    width: 100%; height: 100%; object-fit: contain;
+  }
+  .ill-frame svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+  .ill-frame svg * { vector-effect: non-scaling-stroke; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  .btn:active { transform: none; }
 }

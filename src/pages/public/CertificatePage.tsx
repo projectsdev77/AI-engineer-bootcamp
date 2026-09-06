@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import PublicNav from '@/components/layout/PublicNav'
 import CertificateCard from '@/components/certificate/CertificateCard'
+import Callout from '@/components/ui/Callout'
+import { AlertIcon, CheckIcon } from '@/components/ui/icons'
 
 interface CertificateSnapshot {
   title_text: string
@@ -36,30 +38,38 @@ export default function CertificatePage() {
   }, [code])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       <PublicNav />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        {loading && <p className="text-center text-sm text-slate-400">Loading…</p>}
+        {loading && (
+          <p className="text-center font-mono text-xs font-bold uppercase tracking-wide text-muted">loading…</p>
+        )}
+
+        {!loading && (
+          <p className="mb-6 flex justify-center">
+            {notFound ? (
+              <span className="pill pill-fail">
+                <AlertIcon className="h-3 w-3" /> invalid code · {code}
+              </span>
+            ) : (
+              <span className="pill pill-pass">
+                <CheckIcon className="h-3 w-3" /> verified certificate · code {code}
+              </span>
+            )}
+          </p>
+        )}
 
         {!loading && notFound && (
-          <div className="text-center">
-            <p className="text-lg font-semibold text-slate-900">Certificate not found</p>
-            <p className="mt-2 text-sm text-slate-500">
-              Double-check the link, or{' '}
-              <Link to="/" className="text-brand-600 hover:underline">
-                go home
-              </Link>
-              .
-            </p>
-          </div>
+          <Callout tone="fail" heading="Certificate not found" icon={<AlertIcon className="h-3.5 w-3.5" />} className="mx-auto max-w-md text-center">
+            No certificate matches this code. Double-check the link, or go home.
+          </Callout>
         )}
 
         {!loading && snapshot && (
           <>
             <CertificateCard fields={snapshot} />
-            <p className="mt-6 text-center text-xs text-slate-400">
-              Verified certificate · code {code} · issued{' '}
-              {issuedAt && new Date(issuedAt).toLocaleDateString()}
+            <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-faint">
+              issued {issuedAt && new Date(issuedAt).toLocaleDateString()} · anyone with this code can verify it
             </p>
           </>
         )}

@@ -41,11 +41,13 @@ function useAdminStats() {
   return stats
 }
 
-function StatCard({ label, value, to }: { label: string; value: number; to: string }) {
+function StatCard({ label, value, to, alert }: { label: string; value: number; to: string; alert?: boolean }) {
   return (
-    <Link to={to} className="rounded-lg border border-slate-200 bg-white p-5 hover:border-brand-300">
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{label}</p>
+    <Link to={to} className="card block no-underline hover:shadow-app">
+      <p className={`font-display text-[44px] font-bold leading-none ${alert && value > 0 ? 'text-fail-ink' : 'text-ink'}`}>
+        {value}
+      </p>
+      <p className="meta mt-2">{label}</p>
     </Link>
   )
 }
@@ -54,18 +56,19 @@ export default function AdminDashboardPage() {
   const stats = useAdminStats()
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
       <AdminNav />
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold text-slate-900">Admin overview</h1>
+      <main className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ system overview ]</p>
+        <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Admin overview</h1>
         {stats && (
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
             <StatCard label="Students" value={stats.students} to="/admin/students" />
             <StatCard label="Mentors" value={stats.mentors} to="/admin/students" />
             <StatCard label="Published weeks" value={stats.weeksPublished} to="/admin/curriculum" />
-            <StatCard label="Broken links" value={stats.brokenLinks} to="/admin/broken-links" />
-            <StatCard label="Open exceptions" value={stats.openExceptions} to="/admin/queue" />
+            <StatCard label="Broken links" value={stats.brokenLinks} to="/admin/broken-links" alert />
+            <StatCard label="Open exceptions" value={stats.openExceptions} to="/admin/queue" alert />
           </div>
         )}
       </main>

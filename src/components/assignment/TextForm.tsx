@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { TextConfig } from '@/types/database'
+import { Button } from '@/components/ui/Button'
+import { TextAreaField } from '@/components/ui/Field'
 
 function wordCount(text: string): number {
   return text.trim().length === 0 ? 0 : text.trim().split(/\s+/).length
@@ -27,26 +29,26 @@ export default function TextForm({
       }}
       className="space-y-3"
     >
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        disabled={disabled}
-        rows={12}
-        placeholder="Write your answer here…"
-        className="w-full rounded-md border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-      />
-      <div className="flex items-center justify-between text-xs">
-        <span className={tooShort || tooLong ? 'text-amber-600' : 'text-slate-400'}>
-          {words} words (min {config.min_words}, max {config.max_words})
+      <div className="relative">
+        <TextAreaField
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={disabled}
+          rows={12}
+          placeholder="Write your answer here…"
+          style={{ minHeight: 240 }}
+          error={tooLong}
+        />
+        <span className="pointer-events-none absolute bottom-3 right-4 font-mono text-[11px] font-bold text-faint">
+          {words} words
         </span>
       </div>
-      <button
-        type="submit"
-        disabled={disabled || tooShort || tooLong || words === 0}
-        className="w-full rounded-md bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      <p className={`font-mono text-[11px] font-bold uppercase tracking-wide ${tooShort || tooLong ? 'text-warn-ink' : 'text-faint'}`}>
+        min {config.min_words} · max {config.max_words}
+      </p>
+      <Button type="submit" variant="primary" disabled={disabled || tooShort || tooLong || words === 0} className="w-full">
         Submit
-      </button>
+      </Button>
     </form>
   )
 }

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import Card from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Field, Label, TextAreaField } from '@/components/ui/Field'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import QuizQuestionEditor from '@/components/admin/QuizQuestionEditor'
 import { useAdminCollection } from '@/hooks/useAdminCollection'
@@ -32,6 +37,7 @@ export default function AssignmentEditorPage() {
   const { assignmentId } = useParams()
   const { assignment, loading, refresh } = useAssignment(assignmentId)
   const [saving, setSaving] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
   const [form, setForm] = useState({ title: '', instructions: '', rubric: '' })
   const [config, setConfig] = useState<Record<string, unknown>>({})
 
@@ -61,6 +67,8 @@ export default function AssignmentEditorPage() {
       })
       .eq('id', assignmentId)
     setSaving(false)
+    setJustSaved(true)
+    setTimeout(() => setJustSaved(false), 3000)
     await refresh()
   }
 
@@ -77,79 +85,82 @@ export default function AssignmentEditorPage() {
   if (loading) return <FullPageSpinner />
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
       <AdminNav />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Link to={assignment ? `/admin/curriculum/weeks/${assignment.week_id}` : '/admin/curriculum'} className="text-sm text-slate-500 hover:text-slate-700">
-          ← Back to week
-        </Link>
+      {assignment && (
+        <div className="border-b-2 border-hairline bg-surface">
+          <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+            <Breadcrumb items={[{ label: 'curriculum', to: '/admin/curriculum' }, { label: 'week', to: `/admin/curriculum/weeks/${assignment.week_id}` }, { label: 'assignment' }]} />
+            <div className="flex items-center gap-3">
+              {justSaved && <span className="font-mono text-[11px] font-bold uppercase text-pass-ink">saved</span>}
+              <Button type="button" variant="primary" size="sm" onClick={() => void save()} disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
+      <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
         {assignment && (
           <>
-            <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-white p-5">
-              <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs uppercase text-slate-500">
+            <Card className="space-y-4">
+              <span className="pill" style={{ background: 'var(--color-ink)', borderColor: 'var(--color-ink)', color: 'var(--color-lime)' }}>
                 {assignment.assignment_type}
               </span>
               <div>
-                <label className="block text-xs font-medium text-slate-500">Title</label>
-                <input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
+                <Label htmlFor="title">Title</Label>
+                <Field id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500">Instructions (markdown, shown to students)</label>
-                <textarea
+                <Label htmlFor="instructions">Instructions (markdown, shown to students)</Label>
+                <TextAreaField
+                  id="instructions"
                   value={form.instructions}
                   onChange={(e) => setForm({ ...form, instructions: e.target.value })}
                   rows={5}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+                  className="font-mono text-[13px]"
                 />
               </div>
               {assignment.assignment_type !== 'quiz' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-500">
-                    Rubric (sent to the AI grader, never shown to students)
-                  </label>
-                  <textarea
-                    value={form.rubric}
-                    onChange={(e) => setForm({ ...form, rubric: e.target.value })}
-                    rows={4}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  />
+                  <Label htmlFor="rubric">Rubric (sent to the AI grader, never shown to students)</Label>
+                  <TextAreaField id="rubric" value={form.rubric} onChange={(e) => setForm({ ...form, rubric: e.target.value })} rows={4} />
                 </div>
               )}
 
               {assignment.assignment_type === 'text' && (
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-500">Min words</label>
-                    <input
+                    <Label htmlFor="min_words">Min words</Label>
+                    <Field
+                      id="min_words"
                       type="number"
                       value={(config as unknown as TextConfig).min_words ?? ''}
                       onChange={(e) => setConfig({ ...config, min_words: Number(e.target.value) })}
-                      className="mt-1 w-24 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="w-24"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500">Max words</label>
-                    <input
+                    <Label htmlFor="max_words">Max words</Label>
+                    <Field
+                      id="max_words"
                       type="number"
                       value={(config as unknown as TextConfig).max_words ?? ''}
                       onChange={(e) => setConfig({ ...config, max_words: Number(e.target.value) })}
-                      className="mt-1 w-24 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="w-24"
                     />
                   </div>
                 </div>
               )}
 
               {assignment.assignment_type === 'url' && (
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-slate-500">Allowed hosts (comma-separated)</label>
-                    <input
+                <div className="flex flex-wrap items-end gap-4">
+                  <div className="min-w-[220px] flex-1">
+                    <Label htmlFor="hosts">Allowed hosts (comma-separated)</Label>
+                    <Field
+                      id="hosts"
                       value={((config as unknown as UrlConfig).allowed_hosts ?? []).join(', ')}
                       onChange={(e) =>
                         setConfig({
@@ -158,44 +169,33 @@ export default function AssignmentEditorPage() {
                         })
                       }
                       placeholder="github.com"
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
                     />
                   </div>
-                  <label className="flex items-center gap-1 pb-2 text-xs text-slate-500">
-                    <input
-                      type="checkbox"
-                      checked={Boolean((config as unknown as UrlConfig).require_public)}
-                      onChange={(e) => setConfig({ ...config, require_public: e.target.checked })}
-                    />
-                    Require public
-                  </label>
+                  <Checkbox
+                    checked={Boolean((config as unknown as UrlConfig).require_public)}
+                    onChange={(checked) => setConfig({ ...config, require_public: checked })}
+                    label="Require public"
+                  />
                 </div>
               )}
 
               {assignment.assignment_type === 'quiz' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-500">Pass threshold (%)</label>
-                  <input
+                  <Label htmlFor="pass_threshold">Pass threshold (%)</Label>
+                  <Field
+                    id="pass_threshold"
                     type="number"
                     value={(config as unknown as QuizConfig).pass_threshold ?? ''}
                     onChange={(e) => setConfig({ ...config, pass_threshold: Number(e.target.value) })}
-                    className="mt-1 w-24 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-24"
                   />
                 </div>
               )}
-
-              <button
-                onClick={() => void save()}
-                disabled={saving}
-                className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-              >
-                {saving ? 'Saving…' : 'Save'}
-              </button>
-            </div>
+            </Card>
 
             {assignment.assignment_type === 'quiz' && (
               <section className="mt-8">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Questions</h2>
+                <p className="meta">Questions · {questions.items.length}</p>
                 <div className="mt-3 space-y-4">
                   {questions.items.map((q, i) => (
                     <QuizQuestionEditor
@@ -211,9 +211,9 @@ export default function AssignmentEditorPage() {
                   ))}
                   <button
                     onClick={() => void addQuestion()}
-                    className="w-full rounded-lg border border-dashed border-slate-300 py-3 text-sm text-slate-500 hover:border-brand-300 hover:text-brand-600"
+                    className="w-full rounded-panel border-2 border-dashed border-disabled py-3 font-mono text-xs font-bold uppercase text-muted hover:border-ink hover:text-ink"
                   >
-                    + Add question
+                    + add question
                   </button>
                 </div>
               </section>

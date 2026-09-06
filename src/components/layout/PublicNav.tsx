@@ -1,24 +1,31 @@
 import { Link } from 'react-router-dom'
+import { Monogram } from '@/components/ui/icons'
 
 export default function PublicNav() {
   return (
-    <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link to="/" className="text-base font-semibold text-slate-900">
-          Become an AI Engineer
+    <header className="border-b-[3px] border-ink bg-paper">
+      <nav className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <Link to="/" className="flex items-center gap-3 no-underline">
+          <Monogram size={34} />
+          <span className="font-mono text-[13px] font-bold uppercase leading-tight tracking-[0.06em] text-ink">
+            Become an
+            <br />
+            AI Engineer
+          </span>
         </Link>
         <div className="flex items-center gap-6">
-          <Link to="/curriculum" className="text-sm text-slate-600 hover:text-slate-900">
-            Curriculum
+          <Link to="/curriculum" className="hidden font-mono text-xs lowercase text-ink no-underline hover:text-blue-700 sm:inline">
+            curriculum
           </Link>
-          <Link to="/login" className="text-sm text-slate-600 hover:text-slate-900">
-            Log in
+          <Link to="/login" className="font-mono text-xs lowercase text-ink no-underline hover:text-blue-700">
+            log in
           </Link>
           <Link
             to="/signup"
-            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="btn btn-primary text-ink"
+            style={{ minHeight: 40, padding: '10px 20px', fontSize: 13.5 }}
           >
-            Get started
+            get started
           </Link>
         </div>
       </nav>

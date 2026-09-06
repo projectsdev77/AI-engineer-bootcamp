@@ -3,8 +3,8 @@ import { useAuth } from '@/context/AuthContext'
 
 export function FullPageSpinner() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-brand-600" />
+    <div className="flex min-h-screen items-center justify-center bg-paper">
+      <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">loading…</p>
     </div>
   )
 }

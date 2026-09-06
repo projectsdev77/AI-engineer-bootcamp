@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
+import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
+import { Field } from '@/components/ui/Field'
+import StatusPill from '@/components/ui/StatusPill'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import type { Profile } from '@/types/database'
 
@@ -54,36 +57,55 @@ function useStudents() {
 
 export default function StudentsListPage() {
   const { students, loading } = useStudents()
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return students
+    return students.filter((s) => (s.full_name ?? '').toLowerCase().includes(q) || (s.mentorName ?? '').toLowerCase().includes(q))
+  }, [students, query])
 
   if (loading) return <FullPageSpinner />
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
       <AdminNav />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold text-slate-900">Students</h1>
-        <div className="mt-6 space-y-2">
-          {students.map((s) => (
-            <Link
-              key={s.id}
-              to={`/admin/students/${s.id}`}
-              className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 hover:border-brand-300"
-            >
-              <div>
-                <p className="font-medium text-slate-900">{s.full_name ?? 'Unnamed student'}</p>
-                <p className="text-xs text-slate-400">
-                  {s.mentorName ? `Mentor: ${s.mentorName}` : 'No mentor assigned'}
-                </p>
-              </div>
-              {s.status === 'suspended' && (
-                <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                  Suspended
-                </span>
-              )}
-            </Link>
-          ))}
-          {students.length === 0 && <p className="py-8 text-center text-sm text-slate-500">No students yet.</p>}
+      <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ {students.length} total ]</p>
+            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Students</h1>
+          </div>
+          <Field value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students…" className="w-64" />
+        </div>
+
+        <div className="mt-6">
+          <Table>
+            <THead>
+              <TR>
+                <TH>Student</TH>
+                <TH>Mentor</TH>
+                <TH>Status</TH>
+                <TH />
+              </TR>
+            </THead>
+            <TBody>
+              {filtered.map((s) => (
+                <TR key={s.id}>
+                  <TD className="font-bold text-ink">{s.full_name ?? 'Unnamed student'}</TD>
+                  <TD className="text-[13.5px] text-muted">{s.mentorName ?? 'No mentor assigned'}</TD>
+                  <TD>{s.status === 'suspended' ? <StatusPill variant="fail">suspended</StatusPill> : <StatusPill variant="pass">active</StatusPill>}</TD>
+                  <TD className="text-right">
+                    <Link to={`/admin/students/${s.id}`} className="font-mono text-[11.5px] font-bold uppercase text-blue-700 no-underline hover:underline">
+                      view →
+                    </Link>
+                  </TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+          {filtered.length === 0 && <p className="py-8 text-center font-mono text-xs font-bold uppercase text-muted">No students found.</p>}
         </div>
       </main>
     </div>

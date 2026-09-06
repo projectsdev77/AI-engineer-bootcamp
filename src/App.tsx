@@ -25,6 +25,7 @@ import CertificatePage from '@/pages/public/CertificatePage'
 import ResetPasswordRequestPage from '@/pages/public/ResetPasswordRequestPage'
 import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
 import SettingsPage from '@/pages/student/SettingsPage'
+import NotFoundPage from '@/pages/public/NotFoundPage'
 
 function App() {
   return (
@@ -65,6 +66,8 @@ function App() {
               <Route path="/admin/certificate" element={<CertificateEditorPage />} />
             </Route>
           </Route>
+
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

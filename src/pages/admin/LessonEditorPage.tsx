@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import Card from '@/components/ui/Card'
 import ReorderButtons from '@/components/admin/ReorderButtons'
+import { Button } from '@/components/ui/Button'
+import { Field, Label, TextAreaField } from '@/components/ui/Field'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useAdminCollection } from '@/hooks/useAdminCollection'
 import type { Lesson, Resource, ResourceType } from '@/types/database'
@@ -34,6 +39,7 @@ export default function LessonEditorPage() {
   const { lessonId } = useParams()
   const { lesson, loading, refresh } = useLesson(lessonId)
   const [saving, setSaving] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
   const [form, setForm] = useState({ title: '', body: '', estimated_minutes: '' })
   const [newResource, setNewResource] = useState({ title: '', url: '', resource_type: 'article' as ResourceType })
 
@@ -61,89 +67,83 @@ export default function LessonEditorPage() {
       })
       .eq('id', lessonId)
     setSaving(false)
+    setJustSaved(true)
+    setTimeout(() => setJustSaved(false), 3000)
     await refresh()
   }
 
   if (loading) return <FullPageSpinner />
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
       <AdminNav />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Link to={lesson ? `/admin/curriculum/weeks/${lesson.week_id}` : '/admin/curriculum'} className="text-sm text-slate-500 hover:text-slate-700">
-          ← Back to week
-        </Link>
+      {lesson && (
+        <div className="border-b-2 border-hairline bg-surface">
+          <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+            <Breadcrumb items={[{ label: 'curriculum', to: '/admin/curriculum' }, { label: 'week', to: `/admin/curriculum/weeks/${lesson.week_id}` }, { label: 'lesson' }]} />
+            <div className="flex items-center gap-3">
+              {justSaved && <span className="font-mono text-[11px] font-bold uppercase text-pass-ink">saved</span>}
+              <Button type="button" variant="primary" size="sm" onClick={() => void saveLesson()} disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
+      <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
         {lesson && (
           <>
-            <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-white p-5">
+            <Card className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500">Title</label>
-                <input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
+                <Label htmlFor="title">Title</Label>
+                <Field id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500">
-                  Framing (markdown) — keep it short, the substance is in the resources
-                </label>
-                <textarea
+                <Label htmlFor="body">
+                  Framing (markdown) <span className="normal-case text-faint">· keep it short, the substance is in the resources</span>
+                </Label>
+                <TextAreaField
+                  id="body"
                   value={form.body}
                   onChange={(e) => setForm({ ...form, body: e.target.value })}
                   rows={8}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+                  className="font-mono text-[13px]"
                 />
               </div>
-              <div className="flex items-end gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-500">Estimated minutes</label>
-                  <input
-                    type="number"
-                    value={form.estimated_minutes}
-                    onChange={(e) => setForm({ ...form, estimated_minutes: e.target.value })}
-                    className="mt-1 w-28 rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <button
-                  onClick={() => void saveLesson()}
-                  disabled={saving}
-                  className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                >
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
+              <div>
+                <Label htmlFor="minutes">Estimated minutes</Label>
+                <Field
+                  id="minutes"
+                  type="number"
+                  value={form.estimated_minutes}
+                  onChange={(e) => setForm({ ...form, estimated_minutes: e.target.value })}
+                  className="w-28"
+                />
               </div>
-            </div>
+            </Card>
 
             <section className="mt-8">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Resources</h2>
+              <p className="meta">Resources · {resources.items.length}</p>
               <div className="mt-3 space-y-2">
                 {resources.items.map((resource, i) => (
-                  <div key={resource.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                    <div className="flex items-center gap-3">
+                  <div key={resource.id} className="card">
+                    <div className="flex flex-wrap items-center gap-3">
                       <ReorderButtons
                         canMoveUp={i > 0}
                         canMoveDown={i < resources.items.length - 1}
                         onMoveUp={() => void resources.moveUp(resource.id)}
                         onMoveDown={() => void resources.moveDown(resource.id)}
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
-                        <a href={resource.url} target="_blank" rel="noreferrer" className="truncate text-xs text-brand-600 hover:underline">
-                          {resource.url}
-                        </a>
-                        {resource.is_broken && (
-                          <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
-                            Broken
-                          </span>
-                        )}
-                      </div>
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${resource.is_broken ? 'bg-fail' : 'bg-pass'}`}
+                        title={resource.is_broken ? 'Broken link' : 'Link healthy'}
+                      />
                       <select
                         value={resource.resource_type}
                         onChange={(e) => void resources.update(resource.id, { resource_type: e.target.value })}
-                        className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                        className="rounded-full border-2 border-ink bg-surface px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-ink"
                       >
                         {RESOURCE_TYPES.map((t) => (
                           <option key={t} value={t}>
@@ -151,21 +151,24 @@ export default function LessonEditorPage() {
                           </option>
                         ))}
                       </select>
-                      <label className="flex items-center gap-1 text-xs text-slate-500">
-                        <input
-                          type="checkbox"
-                          checked={resource.is_required}
-                          onChange={(e) => void resources.update(resource.id, { is_required: e.target.checked })}
-                        />
-                        Required
-                      </label>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-bold text-ink">{resource.title}</p>
+                        <a href={resource.url} target="_blank" rel="noreferrer" className="truncate font-mono text-[12px] text-blue-700">
+                          {resource.url}
+                        </a>
+                      </div>
+                      <Checkbox
+                        checked={resource.is_required}
+                        onChange={(checked) => void resources.update(resource.id, { is_required: checked })}
+                        label={<span className="font-mono text-[11px] font-bold uppercase text-muted">required</span>}
+                      />
                       <button
                         onClick={() => {
                           if (confirm(`Delete "${resource.title}"?`)) void resources.remove(resource.id)
                         }}
-                        className="text-xs text-red-500 hover:underline"
+                        className="font-mono text-[11px] font-bold uppercase text-fail-ink hover:underline"
                       >
-                        Delete
+                        del
                       </button>
                     </div>
                   </div>
@@ -183,24 +186,22 @@ export default function LessonEditorPage() {
                     })
                     setNewResource({ title: '', url: '', resource_type: 'article' })
                   }}
-                  className="grid gap-2 rounded-lg border border-dashed border-slate-300 p-3 sm:grid-cols-[1fr_1fr_auto_auto]"
+                  className="grid gap-2 rounded-panel border-2 border-dashed border-disabled p-3 sm:grid-cols-[1fr_1fr_auto_auto]"
                 >
-                  <input
+                  <Field
                     value={newResource.title}
                     onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
                     placeholder="Resource title…"
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm"
                   />
-                  <input
+                  <Field
                     value={newResource.url}
                     onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
                     placeholder="https://…"
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm"
                   />
                   <select
                     value={newResource.resource_type}
                     onChange={(e) => setNewResource({ ...newResource, resource_type: e.target.value as ResourceType })}
-                    className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                    className="field w-auto"
                   >
                     {RESOURCE_TYPES.map((t) => (
                       <option key={t} value={t}>
@@ -208,9 +209,9 @@ export default function LessonEditorPage() {
                       </option>
                     ))}
                   </select>
-                  <button type="submit" className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+                  <Button type="submit" variant="primary">
                     Add
-                  </button>
+                  </Button>
                 </form>
               </div>
             </section>

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import Card from '@/components/ui/Card'
 import ProgressBar from '@/components/ui/ProgressBar'
+import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
 import MessageThread from '@/components/messages/MessageThread'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
@@ -50,11 +53,12 @@ function useRecentSubmissions(studentId: string | undefined) {
   return { submissions, loading }
 }
 
-const STATUS_CLASS: Record<string, string> = {
-  passed: 'bg-green-100 text-green-700',
-  needs_work: 'bg-amber-100 text-amber-700',
-  pending: 'bg-slate-100 text-slate-500',
+const STATUS_VARIANT: Record<string, StatusVariant> = {
+  passed: 'pass',
+  needs_work: 'warn',
+  pending: 'progress',
 }
+const STATUS_LABEL: Record<string, string> = { passed: 'passed', needs_work: 'needs work', pending: 'pending' }
 
 export default function StudentDetailPage() {
   const { studentId } = useParams()
@@ -70,72 +74,69 @@ export default function StudentDetailPage() {
       : 0
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Link to="/mentor" className="text-sm text-slate-500 hover:text-slate-700">
-          ← Your students
-        </Link>
-
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <Breadcrumb items={[{ label: 'your students', to: '/mentor' }, { label: 'student' }]} />
+      <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
+        {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
 
         {overall && (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5">
+          <Card>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700">Overall progress</span>
-              <span className="text-sm text-slate-500">{overallPercent}%</span>
+              <span className="meta">Overall progress</span>
+              <span className="font-display text-2xl font-bold text-ink">{overallPercent}%</span>
             </div>
-            <div className="mt-2">
-              <ProgressBar percent={overallPercent} />
+            <div className="mt-3">
+              <ProgressBar percent={overallPercent} tone="ink" />
             </div>
-          </div>
+          </Card>
         )}
 
         {data?.weeks && (
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
             {data.weeks.map((w) => (
-              <div key={w.week_id} className="rounded-md border border-slate-200 bg-white p-3 text-center">
-                <p className="text-xs text-slate-400">Week {w.position}</p>
-                <p className="text-sm font-medium text-slate-700">
-                  {w.unlocked ? `${w.lessons_completed}/${w.lessons_total} lessons` : 'Locked'}
+              <div
+                key={w.week_id}
+                className={`rounded-card border-2 p-3 text-center ${w.unlocked ? 'border-ink bg-surface' : 'border-disabled bg-stone'}`}
+              >
+                <p className="font-mono text-[10px] font-bold uppercase tracking-wide text-faint">Week {w.position}</p>
+                <p className="mt-1 text-[13px] font-bold text-ink">
+                  {w.unlocked ? `${w.lessons_completed}/${w.lessons_total}` : 'Locked'}
                 </p>
               </div>
             ))}
           </div>
         )}
 
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Recent submissions
-          </h2>
-          <div className="mt-3 space-y-2">
-            {submissionsLoading && <p className="text-sm text-slate-400">Loading…</p>}
+        <section className="mt-9">
+          <p className="meta">Recent submissions</p>
+          <div className="mt-3 space-y-3">
+            {submissionsLoading && <p className="font-mono text-xs font-bold uppercase text-muted">loading…</p>}
             {!submissionsLoading && submissions.length === 0 && (
-              <p className="text-sm text-slate-500">No submissions yet.</p>
+              <p className="text-[14.5px] text-muted">No submissions yet.</p>
             )}
             {submissions.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3"
-              >
+              <Card key={s.id} className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{s.assignmentTitle}</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="font-bold text-ink">{s.assignmentTitle}</p>
+                  <p className="font-mono text-[11px] text-faint">
                     {new Date(s.submitted_at).toLocaleDateString()} · attempt {s.attempt_number}
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_CLASS[s.final_status]}`}>
-                  {s.final_status === 'pending' ? 'Pending' : s.final_status === 'passed' ? 'Passed' : 'Needs work'}
-                </span>
-              </div>
+                <StatusPill variant={STATUS_VARIANT[s.final_status]}>{STATUS_LABEL[s.final_status]}</StatusPill>
+              </Card>
             ))}
           </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Messages</h2>
+        <section className="mt-9">
+          <p className="meta">Messages</p>
           <div className="mt-3">{studentId && <MessageThread studentId={studentId} />}</div>
         </section>
+
+        <Link to="/mentor" className="mt-8 inline-block font-mono text-xs font-bold uppercase tracking-wide text-blue-700">
+          ← back to your students
+        </Link>
       </main>
     </div>
   )

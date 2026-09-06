@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { UrlConfig } from '@/types/database'
+import { Button } from '@/components/ui/Button'
+import { Field, FieldError, FieldHint } from '@/components/ui/Field'
 
 function hostMatches(url: string, allowedHosts: string[]): boolean {
   if (allowedHosts.length === 0) return true
@@ -39,30 +41,22 @@ export default function UrlForm({
       }}
       className="space-y-3"
     >
-      <input
+      <Field
         type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         onBlur={() => setTouched(true)}
         disabled={disabled}
         placeholder="https://github.com/you/your-project"
-        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        error={touched && validUrl && !hostOk}
       />
       {touched && validUrl && !hostOk && (
-        <p className="text-xs text-amber-600">
-          Expected a link from: {config.allowed_hosts.join(', ')}
-        </p>
+        <FieldError>Expected a link from: {config.allowed_hosts.join(', ')}</FieldError>
       )}
-      {config.require_public && (
-        <p className="text-xs text-slate-400">Make sure this link is publicly accessible.</p>
-      )}
-      <button
-        type="submit"
-        disabled={disabled || !validUrl}
-        className="w-full rounded-md bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      {config.require_public && <FieldHint>Make sure this link is publicly accessible.</FieldHint>}
+      <Button type="submit" variant="primary" disabled={disabled || !validUrl} className="w-full">
         Submit
-      </button>
+      </Button>
     </form>
   )
 }

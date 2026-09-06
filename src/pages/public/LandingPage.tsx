@@ -1,16 +1,25 @@
 import { Link } from 'react-router-dom'
 import PublicNav from '@/components/layout/PublicNav'
+import { LinkButton } from '@/components/ui/Button'
+import { ListIcon, MessageIcon, StarIcon, CheckIcon } from '@/components/ui/icons'
+import { IllCohort, IllFeedback, IllMentor } from '@/components/ui/illustrations'
 
 const PILLARS = [
   {
+    icon: ListIcon,
+    chip: 'bg-lime',
     title: 'Sequenced, not scattered',
     body: 'Twelve weeks build on each other. You unlock week two by finishing week one — no picking a random tutorial and hoping it is the right next step.',
   },
   {
+    icon: MessageIcon,
+    chip: 'bg-blue-50',
     title: 'Feedback on real work',
     body: 'Every assignment gets a response: AI-generated feedback the moment you submit, with a human mentor one request away if you want a second look.',
   },
   {
+    icon: StarIcon,
+    chip: 'bg-blush',
     title: 'Accountability without a cohort',
     body: 'No start dates, no deadlines, no late penalties. Progress is yours to make — the platform just makes sure you always know what is next.',
   },
@@ -24,76 +33,160 @@ const AUDIENCE = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       <PublicNav />
 
       <main>
-        <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-            Become an AI Engineer
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
-            A self-paced, 12-week path for developers moving into AI engineering. Curated
-            resources, original framing, real assignments, and feedback on every submission.
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <Link
-              to="/signup"
-              className="rounded-md bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700"
-            >
-              Start learning
-            </Link>
-            <Link
-              to="/curriculum"
-              className="rounded-md border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              View the curriculum
-            </Link>
-          </div>
-        </section>
+        {/* hero */}
+        <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:py-24">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div>
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
+                [ 12 weeks · self-paced · no cohort ]
+              </p>
+              <h1 className="mt-4 font-display text-[52px] font-bold leading-[0.96] tracking-[-0.03em] text-ink sm:text-[64px] lg:text-[72px]">
+                Become an{' '}
+                <span className="inline-block rounded-[6px] bg-lime px-2">AI engineer</span>
+              </h1>
+              <p className="mt-6 max-w-lg text-[19px] leading-[1.55] text-muted">
+                A self-paced, 12-week path for developers moving into AI engineering. Curated
+                resources, original framing, real assignments, and feedback on every submission.
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-4">
+                <LinkButton to="/signup" variant="site">
+                  Start learning
+                </LinkButton>
+                <LinkButton to="/curriculum" variant="secondary">
+                  View the curriculum
+                </LinkButton>
+              </div>
+            </div>
 
-        <section className="border-t border-slate-200 bg-slate-50">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-            <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-brand-600">
-              Why this instead of another list of links
-            </h2>
-            <div className="mt-10 grid gap-8 sm:grid-cols-3">
-              {PILLARS.map((pillar) => (
-                <div key={pillar.title} className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                  <h3 className="text-base font-semibold text-slate-900">{pillar.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{pillar.body}</p>
-                </div>
-              ))}
+            <div className="overflow-hidden rounded-panel border-[3px] border-ink shadow-site" style={{ background: '#0B0C10' }}>
+              <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-lime" />
+                <span className="font-mono text-xs text-white/50">~/track/week-01</span>
+              </div>
+              <div className="space-y-3 p-5 font-mono text-[13px] leading-relaxed text-white/90">
+                <p className="text-lime">$ ls weeks/</p>
+                <p className="text-white/70">
+                  <span className="text-pass">✓</span> 01_foundations_of_llms_and_transformers
+                </p>
+                <p className="text-white/70">
+                  <span className="text-lime">▸</span> 02_prompt_engineering_and_context_design
+                </p>
+                <p className="text-white/40">· 03_retrieval_augmented_generation</p>
+                <p className="text-white/40">· 04_tool_use_and_function_calling</p>
+                <p className="text-white/40">· … 8 more</p>
+                <p className="pt-2 text-lime">$ cat progress.json</p>
+                <p className="text-white/70">{'{ "unlocked": 2, "submitted": 3, "feedback": "instant" }'}</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
-          <h2 className="text-2xl font-semibold text-slate-900">Is this for you?</h2>
-          <ul className="mt-6 space-y-3">
-            {AUDIENCE.map((line) => (
-              <li key={line} className="flex gap-3 text-sm text-slate-700">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-                {line}
-              </li>
+        {/* claim strip */}
+        <section className="border-y-2 border-ink bg-ink">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 sm:px-6">
+            {['No start dates', 'No deadlines', 'No late penalties', 'Feedback on every submission'].map((claim, i) => (
+              <span
+                key={claim}
+                className={`font-mono text-[11px] font-bold uppercase tracking-[0.1em] ${i === 0 ? 'text-lime' : 'text-paper/70'}`}
+              >
+                {claim}
+              </span>
             ))}
-          </ul>
+          </div>
         </section>
 
-        <section className="border-t border-slate-200 bg-brand-900">
-          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-            <h2 className="text-2xl font-semibold text-white">Twelve weeks. One path. Start free.</h2>
-            <Link
-              to="/signup"
-              className="mt-8 inline-block rounded-md bg-white px-6 py-3 text-sm font-semibold text-brand-900 hover:bg-slate-100"
-            >
+        {/* value cards */}
+        <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6">
+          <p className="text-center font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
+            [ why this instead of another list of links ]
+          </p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+            {PILLARS.map((pillar) => (
+              <div key={pillar.title} className="card">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-[10px] border-2 border-ink ${pillar.chip}`}>
+                  <pillar.icon className="h-5 w-5 text-ink" />
+                </span>
+                <h3 className="mt-4 font-display text-xl font-bold text-ink">{pillar.title}</h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{pillar.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* feature panels */}
+        <section className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-panel border-2 border-ink bg-blush p-7">
+              <div className="ill-frame aspect-[2.6/1] text-ink">
+                <IllFeedback />
+              </div>
+              <h3 className="mt-5 font-display text-2xl font-bold text-ink">Feedback the moment you submit</h3>
+              <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
+                Every assignment gets a written response against the same rubric a mentor would use — not a score, not a checkmark.
+              </p>
+              <Link to="/curriculum" className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2">
+                see an assignment →
+              </Link>
+            </div>
+            <div className="rounded-panel border-2 border-ink bg-lime p-7">
+              <div className="ill-frame aspect-[2.6/1] text-ink">
+                <IllMentor />
+              </div>
+              <h3 className="mt-5 font-display text-2xl font-bold text-ink">A human, whenever you want one</h3>
+              <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
+                Disagree with the AI, or just want a second read? Ask a mentor and a person picks it up from the queue.
+              </p>
+              <Link to="/curriculum" className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2">
+                how review works →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* is this for you */}
+        <section className="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+            <div>
+              <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
+              <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ three honest tests ]</p>
+              <div className="ill-frame mt-6 aspect-square text-ink">
+                <IllCohort />
+              </div>
+            </div>
+            <ul className="space-y-4">
+              {AUDIENCE.map((line) => (
+                <li key={line} className="card flex items-start gap-4">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] border-2 border-ink bg-lime">
+                    <CheckIcon className="h-4 w-4 text-ink" />
+                  </span>
+                  <span className="text-[15px] leading-relaxed text-ink">{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* closing band */}
+        <section className="border-t-2 border-ink bg-ink">
+          <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-4 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+              <h2 className="font-display text-3xl font-bold text-paper sm:text-4xl">Twelve weeks. One path. Start free.</h2>
+              <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-paper/50">
+                [ no card required · week one is open ]
+              </p>
+            </div>
+            <LinkButton to="/signup" variant="primary" className="shrink-0">
               Create your account
-            </Link>
+            </LinkButton>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">
+      <footer className="border-t-2 border-ink py-8 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-faint">
         © {new Date().getFullYear()} Become an AI Engineer
       </footer>
     </div>

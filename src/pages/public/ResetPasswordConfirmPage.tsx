@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import PublicNav from '@/components/layout/PublicNav'
+import { Button } from '@/components/ui/Button'
+import { Field, Label } from '@/components/ui/Field'
+import Callout from '@/components/ui/Callout'
+import { AlertIcon } from '@/components/ui/icons'
 
 // Reached via the link in the reset email. Supabase's client library
 // exchanges the URL's recovery token for a session automatically on load
@@ -28,59 +33,53 @@ export default function ResetPasswordConfirmPage() {
     setDone(true)
   }
 
-  if (done) {
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="max-w-sm text-center">
-          <h1 className="text-xl font-semibold text-slate-900">Password updated</h1>
-          <p className="mt-2 text-sm text-slate-600">You can now log in with your new password.</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="mt-6 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            Go to dashboard
-          </button>
+  return (
+    <div className="min-h-screen bg-paper">
+      <PublicNav />
+      <main className="flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-[420px] rounded-panel border-[3px] border-ink bg-surface p-8 shadow-site">
+          {done ? (
+            <>
+              <Callout tone="pass" heading="password updated">
+                You can now log in with your new password.
+              </Callout>
+              <Button variant="site" onClick={() => navigate('/dashboard')} className="mt-6 w-full">
+                Go to dashboard
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ almost done ]</p>
+              <h1 className="mt-2 font-display text-[32px] font-bold leading-none tracking-[-0.03em] text-ink">
+                Choose a new password
+              </h1>
+
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <div>
+                  <Label htmlFor="password">New password</Label>
+                  <Field
+                    id="password"
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                {error && (
+                  <Callout tone="fail" heading="couldn't update password" icon={<AlertIcon className="h-3.5 w-3.5" />}>
+                    {error}
+                  </Callout>
+                )}
+                <Button type="submit" variant="site" disabled={submitting} className="w-full">
+                  {submitting ? 'Updating…' : 'Update password'}
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </main>
-    )
-  }
-
-  return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <Link to="/" className="text-lg font-semibold text-brand-700">
-            Become an AI Engineer
-          </Link>
-          <h1 className="mt-4 text-xl font-semibold text-slate-900">Choose a new password</h1>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-              New password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-          >
-            {submitting ? 'Updating…' : 'Update password'}
-          </button>
-        </form>
-      </div>
-    </main>
+    </div>
   )
 }

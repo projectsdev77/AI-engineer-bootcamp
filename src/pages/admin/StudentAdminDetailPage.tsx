@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import Card from '@/components/ui/Card'
 import ProgressBar from '@/components/ui/ProgressBar'
+import { Button } from '@/components/ui/Button'
+import { Field, Label, SelectField } from '@/components/ui/Field'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
 import type { Profile } from '@/types/database'
@@ -99,81 +103,60 @@ export default function StudentAdminDetailPage() {
   const lockedWeeks = (data?.weeks ?? []).filter((w) => !w.unlocked)
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <AppNav />
       <AdminNav />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Link to="/admin/students" className="text-sm text-slate-500 hover:text-slate-700">
-          ← Students
-        </Link>
+      <Breadcrumb items={[{ label: 'students', to: '/admin/students' }, { label: 'student' }]} />
+      <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
+        {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
 
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {overall && (
+            <Card>
+              <div className="flex items-center justify-between">
+                <span className="meta">Overall progress</span>
+                <span className="font-display text-2xl font-bold text-ink">{overallPercent}%</span>
+              </div>
+              <div className="mt-3">
+                <ProgressBar percent={overallPercent} tone="ink" />
+              </div>
+            </Card>
+          )}
 
-        {overall && (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700">Overall progress</span>
-              <span className="text-sm text-slate-500">{overallPercent}%</span>
-            </div>
-            <div className="mt-2">
-              <ProgressBar percent={overallPercent} />
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5">
-          <label className="block text-xs font-medium text-slate-500">Assigned mentor</label>
-          <select
-            value={mentorId ?? ''}
-            disabled={reassigning}
-            onChange={(e) => void reassignMentor(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="" disabled>
-              Select a mentor…
-            </option>
-            {mentors.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.full_name ?? m.id}
+          <Card>
+            <Label htmlFor="mentor">Assigned mentor</Label>
+            <SelectField id="mentor" value={mentorId ?? ''} disabled={reassigning} onChange={(e) => void reassignMentor(e.target.value)}>
+              <option value="" disabled>
+                Select a mentor…
               </option>
-            ))}
-          </select>
+              {mentors.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.full_name ?? m.id}
+                </option>
+              ))}
+            </SelectField>
+          </Card>
         </div>
 
-        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5">
-          <label className="block text-xs font-medium text-slate-500">Manually unlock a week</label>
-          <p className="mt-1 text-xs text-slate-400">
-            Requires a reason — this is logged and visible in the audit trail.
-          </p>
-          <div className="mt-2 space-y-2">
-            <select
-              value={unlockWeekId}
-              onChange={(e) => setUnlockWeekId(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            >
+        <Card className="mt-6">
+          <p className="meta">Manually unlock a week</p>
+          <p className="mt-1.5 text-[13.5px] text-muted">Requires a reason — this is logged and visible in the audit trail.</p>
+          <div className="mt-4 space-y-3">
+            <SelectField value={unlockWeekId} onChange={(e) => setUnlockWeekId(e.target.value)}>
               <option value="">Select a locked week…</option>
               {lockedWeeks.map((w) => (
                 <option key={w.week_id} value={w.week_id}>
                   Week {w.position}: {w.title}
                 </option>
               ))}
-            </select>
-            <input
-              value={unlockReason}
-              onChange={(e) => setUnlockReason(e.target.value)}
-              placeholder="Reason (required)…"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            />
-            {unlockError && <p className="text-xs text-red-600">{unlockError}</p>}
-            <button
-              onClick={() => void manualUnlock()}
-              disabled={unlocking || !unlockWeekId || !unlockReason.trim()}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-            >
+            </SelectField>
+            <Field value={unlockReason} onChange={(e) => setUnlockReason(e.target.value)} placeholder="Reason (required)…" />
+            {unlockError && <p className="text-sm font-bold text-fail-ink">{unlockError}</p>}
+            <Button type="button" variant="primary" onClick={() => void manualUnlock()} disabled={unlocking || !unlockWeekId || !unlockReason.trim()}>
               {unlocking ? 'Unlocking…' : 'Unlock'}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       </main>
     </div>
   )

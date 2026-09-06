@@ -1,9 +1,17 @@
-export default function ProgressBar({ percent }: { percent: number }) {
+export default function ProgressBar({
+  percent,
+  tone = 'lime',
+  className = '',
+}: {
+  percent: number
+  tone?: 'lime' | 'ink'
+  className?: string
+}) {
   const clamped = Math.max(0, Math.min(100, percent))
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div className={`h-3 w-full overflow-hidden rounded-full border-2 border-ink bg-paper ${className}`}>
       <div
-        className="h-full rounded-full bg-brand-600 transition-all"
+        className={`h-full rounded-full transition-all ${tone === 'lime' ? 'bg-lime' : 'bg-ink'}`}
         style={{ width: `${clamped}%` }}
       />
     </div>
