@@ -20,6 +20,8 @@ import AssignmentEditorPage from '@/pages/admin/AssignmentEditorPage'
 import StudentsListPage from '@/pages/admin/StudentsListPage'
 import StudentAdminDetailPage from '@/pages/admin/StudentAdminDetailPage'
 import BrokenLinksPage from '@/pages/admin/BrokenLinksPage'
+import CertificateEditorPage from '@/pages/admin/CertificateEditorPage'
+import CertificatePage from '@/pages/public/CertificatePage'
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/curriculum" element={<CurriculumPage />} />
+          <Route path="/certificates/:code" element={<CertificatePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
@@ -53,7 +56,7 @@ function App() {
               <Route path="/admin/students" element={<StudentsListPage />} />
               <Route path="/admin/students/:studentId" element={<StudentAdminDetailPage />} />
               <Route path="/admin/broken-links" element={<BrokenLinksPage />} />
-              {/* certificate route added in the next task */}
+              <Route path="/admin/certificate" element={<CertificateEditorPage />} />
             </Route>
           </Route>
         </Routes>

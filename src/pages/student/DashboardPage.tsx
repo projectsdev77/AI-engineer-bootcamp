@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { currentWeek, isWeekComplete, useProgressOverview, type WeekProgress } from '@/hooks/useProgressOverview'
+import { useMyCertificate } from '@/hooks/useMyCertificate'
 import AppNav from '@/components/layout/AppNav'
 import ProgressBar from '@/components/ui/ProgressBar'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
@@ -67,6 +68,7 @@ export default function DashboardPage() {
       ? Math.round((overall.resources_completed / overall.resources_total) * 100)
       : 0
   const active = currentWeek(weeks)
+  const certificateCode = useMyCertificate()
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -80,6 +82,21 @@ export default function DashboardPage() {
 
         {!error && data?.enrolled === false && (
           <p className="mt-4 text-sm text-slate-600">You're not enrolled yet — this shouldn't happen; contact support.</p>
+        )}
+
+        {certificateCode && (
+          <div className="mt-6 flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-5">
+            <div>
+              <p className="text-sm font-semibold text-green-800">You completed the track! 🎉</p>
+              <p className="text-sm text-green-700">Your certificate is ready to share.</p>
+            </div>
+            <Link
+              to={`/certificates/${certificateCode}`}
+              className="shrink-0 rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800"
+            >
+              View certificate
+            </Link>
+          </div>
         )}
 
         {overall && (
