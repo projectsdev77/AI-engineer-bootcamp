@@ -12,6 +12,11 @@ import AssignmentPage from '@/pages/student/AssignmentPage'
 import ExceptionQueuePage from '@/pages/shared/ExceptionQueuePage'
 import MentorDashboardPage from '@/pages/mentor/MentorDashboardPage'
 import StudentDetailPage from '@/pages/mentor/StudentDetailPage'
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
+import CurriculumListPage from '@/pages/admin/CurriculumListPage'
+import WeekEditorPage from '@/pages/admin/WeekEditorPage'
+import LessonEditorPage from '@/pages/admin/LessonEditorPage'
+import AssignmentEditorPage from '@/pages/admin/AssignmentEditorPage'
 
 function App() {
   return (
@@ -36,8 +41,13 @@ function App() {
             </Route>
 
             <Route element={<RequireRole roles={['admin']} />}>
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/curriculum" element={<CurriculumListPage />} />
+              <Route path="/admin/curriculum/weeks/:weekId" element={<WeekEditorPage />} />
+              <Route path="/admin/curriculum/lessons/:lessonId" element={<LessonEditorPage />} />
+              <Route path="/admin/curriculum/assignments/:assignmentId" element={<AssignmentEditorPage />} />
               <Route path="/admin/queue" element={<ExceptionQueuePage />} />
-              {/* remaining admin routes added in a later task */}
+              {/* students/broken-links/certificate routes added in the next task */}
             </Route>
           </Route>
         </Routes>
