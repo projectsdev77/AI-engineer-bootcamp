@@ -33,14 +33,17 @@ export function currentWeek(weeks: WeekProgress[]): WeekProgress | undefined {
   return unlocked.find((w) => !isWeekComplete(w)) ?? unlocked[unlocked.length - 1]
 }
 
-export function useProgressOverview() {
+/** Pass `targetUserId` to view another (mentor-assigned) student's progress; omit for your own. */
+export function useProgressOverview(targetUserId?: string) {
   const [data, setData] = useState<ProgressOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase.rpc('get_progress_overview')
+    const { data, error } = await supabase.rpc('get_progress_overview', {
+      p_target_user_id: targetUserId ?? null,
+    })
     if (error) {
       setError(error.message)
     } else {
@@ -48,7 +51,7 @@ export function useProgressOverview() {
       setData(data as ProgressOverview)
     }
     setLoading(false)
-  }, [])
+  }, [targetUserId])
 
   useEffect(() => {
     void refresh()
