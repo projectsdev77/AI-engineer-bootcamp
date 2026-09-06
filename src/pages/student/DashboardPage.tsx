@@ -58,6 +58,7 @@ function WeekRow({ week, isCurrent }: { week: WeekProgress; isCurrent: boolean }
 export default function DashboardPage() {
   const { profile } = useAuth()
   const { data, loading, error } = useProgressOverview()
+  const certificateCode = useMyCertificate()
 
   if (loading) return <FullPageSpinner />
 
@@ -68,7 +69,6 @@ export default function DashboardPage() {
       ? Math.round((overall.resources_completed / overall.resources_total) * 100)
       : 0
   const active = currentWeek(weeks)
-  const certificateCode = useMyCertificate()
 
   return (
     <div className="min-h-screen bg-slate-50">
