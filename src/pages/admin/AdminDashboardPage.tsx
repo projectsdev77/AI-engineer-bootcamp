@@ -8,8 +8,8 @@ interface Stats {
   students: number
   mentors: number
   weeksPublished: number
+  weeksDraft: number
   brokenLinks: number
-  openExceptions: number
 }
 
 function useAdminStats() {
@@ -17,23 +17,19 @@ function useAdminStats() {
 
   useEffect(() => {
     ;(async () => {
-      const [students, mentors, weeksPublished, brokenLinks, openExceptions] = await Promise.all([
+      const [students, mentors, weeksPublished, weeksDraft, brokenLinks] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'mentor'),
         supabase.from('weeks').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+        supabase.from('weeks').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
         supabase.from('resources').select('id', { count: 'exact', head: true }).eq('is_broken', true),
-        supabase
-          .from('submissions')
-          .select('id', { count: 'exact', head: true })
-          .or('evaluation_status.eq.failed,flagged_for_review_at.not.is.null')
-          .is('reviewed_at', null),
       ])
       setStats({
         students: students.count ?? 0,
         mentors: mentors.count ?? 0,
         weeksPublished: weeksPublished.count ?? 0,
+        weeksDraft: weeksDraft.count ?? 0,
         brokenLinks: brokenLinks.count ?? 0,
-        openExceptions: openExceptions.count ?? 0,
       })
     })()
   }, [])
@@ -67,8 +63,8 @@ export default function AdminDashboardPage() {
             <StatCard label="Students" value={stats.students} to="/admin/students" />
             <StatCard label="Mentors" value={stats.mentors} to="/admin/students" />
             <StatCard label="Published weeks" value={stats.weeksPublished} to="/admin/curriculum" />
+            <StatCard label="Draft weeks" value={stats.weeksDraft} to="/admin/curriculum" />
             <StatCard label="Broken links" value={stats.brokenLinks} to="/admin/broken-links" alert />
-            <StatCard label="Open exceptions" value={stats.openExceptions} to="/admin/queue" alert />
           </div>
         )}
       </main>

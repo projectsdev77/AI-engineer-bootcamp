@@ -6,7 +6,6 @@ const TABS = [
   { to: '/admin/students', label: 'students' },
   { to: '/admin/broken-links', label: 'broken links' },
   { to: '/admin/certificate', label: 'certificate' },
-  { to: '/admin/queue', label: 'exception queue' },
 ] as const
 
 export default function AdminNav() {

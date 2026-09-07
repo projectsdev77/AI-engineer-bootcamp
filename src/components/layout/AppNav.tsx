@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Monogram } from '@/components/ui/icons'
+import Avatar from '@/components/ui/Avatar'
 
 export default function AppNav() {
   const { profile, signOut } = useAuth()
@@ -36,8 +37,16 @@ export default function AppNav() {
               your students
             </Link>
           )}
-          <Link to="/settings" className="hidden font-mono text-xs text-paper/80 no-underline hover:text-lime sm:inline">
-            {profile?.full_name?.toLowerCase() ?? 'settings'}
+          {profile?.role === 'admin' && (
+            <Link to="/admin" className="font-mono text-xs text-paper no-underline hover:text-lime">
+              admin
+            </Link>
+          )}
+          <Link to="/settings" className="flex items-center gap-2 no-underline hover:text-lime">
+            <Avatar name={profile?.full_name} url={profile?.avatar_url} size={26} />
+            <span className="hidden font-mono text-xs text-paper/80 sm:inline">
+              {profile?.full_name?.toLowerCase() ?? 'settings'}
+            </span>
           </Link>
           <button
             onClick={() => void signOut()}

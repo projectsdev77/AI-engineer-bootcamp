@@ -11,10 +11,10 @@ export interface QueueItem extends Submission {
 
 /**
  * The exception queue (PD-002): submissions that failed AI evaluation or
- * that a student flagged for a second look. RLS scopes the underlying
- * `submissions` select automatically — a mentor only ever gets rows for
- * their assigned students, an admin gets everyone's — so this hook doesn't
- * need to know which role is calling it.
+ * that a student flagged for a second look. Mentor-only — admin does not
+ * evaluate submissions. RLS scopes the underlying `submissions` select to
+ * a mentor's own assigned students automatically, so this hook doesn't
+ * need to filter by mentor id itself.
  */
 export function useExceptionQueue() {
   const [items, setItems] = useState<QueueItem[]>([])

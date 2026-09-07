@@ -5,17 +5,13 @@ import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
 import { TextAreaField } from '@/components/ui/Field'
 import { CheckIcon, AlertIcon, MessageIcon } from '@/components/ui/icons'
-import type { Profile } from '@/types/database'
 
 export default function QueueCard({
   item,
   onResolve,
-  mentorAssign,
 }: {
   item: QueueItem
   onResolve?: (status: 'passed' | 'needs_work', feedback: string) => Promise<boolean>
-  /** Admin-only: lets the reviewer reassign this student's mentor right from the card. */
-  mentorAssign?: { mentors: Profile[]; currentMentorId: string | null; onReassign: (mentorId: string) => void }
 }) {
   const [status, setStatus] = useState<'passed' | 'needs_work'>('needs_work')
   const [feedback, setFeedback] = useState('')
@@ -53,22 +49,6 @@ export default function QueueCard({
             <p className="mt-1.5 font-mono text-[11px] text-faint">
               {new Date(item.submitted_at).toLocaleDateString()}
             </p>
-            {mentorAssign && (
-              <select
-                value={mentorAssign.currentMentorId ?? ''}
-                onChange={(e) => mentorAssign.onReassign(e.target.value)}
-                className="mt-2 rounded-full border-2 border-ink bg-surface px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-ink"
-              >
-                <option value="" disabled>
-                  assign mentor…
-                </option>
-                {mentorAssign.mentors.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.full_name ?? m.id}
-                  </option>
-                ))}
-              </select>
-            )}
           </div>
         </div>
 

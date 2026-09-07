@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { currentWeek, isWeekComplete, useProgressOverview, type WeekProgress } from '@/hooks/useProgressOverview'
 import { useMyCertificate } from '@/hooks/useMyCertificate'
@@ -67,6 +67,13 @@ export default function DashboardPage() {
   const certificateCode = useMyCertificate()
 
   if (loading) return <FullPageSpinner />
+
+  // /dashboard is the one landing page every login flow (email, signup,
+  // Google OAuth) sends everyone to, since none of them know the caller's
+  // role until the profile has loaded. Bounce mentors/admins on to their
+  // own home from here rather than teaching every entry point about roles.
+  if (profile?.role === 'mentor') return <Navigate to="/mentor" replace />
+  if (profile?.role === 'admin') return <Navigate to="/admin" replace />
 
   const weeks = data?.weeks ?? []
   const overall = data?.overall

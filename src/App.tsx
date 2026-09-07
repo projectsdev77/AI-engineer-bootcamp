@@ -59,7 +59,6 @@ function App() {
               <Route path="/admin/curriculum/weeks/:weekId" element={<WeekEditorPage />} />
               <Route path="/admin/curriculum/lessons/:lessonId" element={<LessonEditorPage />} />
               <Route path="/admin/curriculum/assignments/:assignmentId" element={<AssignmentEditorPage />} />
-              <Route path="/admin/queue" element={<ExceptionQueuePage />} />
               <Route path="/admin/students" element={<StudentsListPage />} />
               <Route path="/admin/students/:studentId" element={<StudentAdminDetailPage />} />
               <Route path="/admin/broken-links" element={<BrokenLinksPage />} />

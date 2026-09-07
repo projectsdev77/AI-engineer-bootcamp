@@ -142,18 +142,31 @@ export default function LessonPage() {
                 </Card>
               )}
 
-              {nextLesson && (
-                <div className="mt-8 flex flex-col gap-4 rounded-panel border-2 border-ink bg-lime p-6 sm:flex-row sm:items-center sm:justify-between">
+              {resources.length > 0 && (
+                <div
+                  className={`mt-8 flex flex-col gap-4 rounded-panel border-2 border-ink p-6 sm:flex-row sm:items-center sm:justify-between ${
+                    completedAt ? 'bg-lime' : 'bg-stone'
+                  }`}
+                >
                   <div>
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-ink/60">Next up</p>
-                    <p className="mt-1 font-display text-xl font-bold text-ink">{nextLesson.title}</p>
+                    <p className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-ink/60">
+                      {completedAt ? 'Next up' : `${doneCount}/${requiredResources.length} required checked`}
+                    </p>
+                    <p className="mt-1 font-display text-xl font-bold text-ink">
+                      {completedAt
+                        ? (nextLesson?.title ?? 'Nice work')
+                        : 'Check off the required resources to continue'}
+                    </p>
                   </div>
-                  <button
-                    onClick={() => navigate(`/weeks/${weekId}/lessons/${nextLesson.id}`)}
-                    className="btn btn-secondary shrink-0 text-ink"
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={!completedAt || !nextLesson}
+                    onClick={() => nextLesson && navigate(`/weeks/${weekId}/lessons/${nextLesson.id}`)}
+                    className="shrink-0 text-ink"
                   >
-                    Next lesson →
-                  </button>
+                    {nextLesson ? 'Continue →' : 'Complete'}
+                  </Button>
                 </div>
               )}
             </div>

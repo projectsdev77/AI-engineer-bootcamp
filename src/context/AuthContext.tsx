@@ -15,6 +15,7 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>
+  deleteAccount: () => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -104,6 +105,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null }
   }
 
+  // Deletes the signed-in user's account. The edge function resolves the
+  // account to delete from the caller's own verified session token, never
+  // from a client-supplied id — see delete-account/index.ts. Signs out
+  // locally on success since the session is invalid the moment the user
+  // row is gone.
+  async function deleteAccount() {
+    const { data, error } = await supabase.functions.invoke('delete-account')
+    if (error) {
+      return { error: error.message }
+    }
+    if (data?.error) {
+      return { error: data.error as string }
+    }
+    await supabase.auth.signOut()
+    return { error: null }
+  }
+
   const value: AuthContextValue = {
     session,
     user: session?.user ?? null,
@@ -116,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile,
     requestPasswordReset,
     updatePassword,
+    deleteAccount,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
