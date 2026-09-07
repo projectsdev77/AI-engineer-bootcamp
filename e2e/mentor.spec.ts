@@ -24,7 +24,10 @@ test.describe('Assigned students', () => {
     await expect(page).toHaveURL(/\/mentor\/students\//)
     await expect(page.getByText(/overall progress/i)).toBeVisible()
     await expect(page.getByText(/recent submissions/i)).toBeVisible()
-    await expect(page.getByText(/messages/i)).toBeVisible()
+    // "Messages" (the section header) vs. "No messages yet — say hello."
+    // (the empty state) both match a loose /messages/i — the header alone
+    // is enough to confirm the section rendered.
+    await expect(page.getByText('Messages', { exact: true })).toBeVisible()
   })
 
   test('sending a message appears in the thread immediately', async ({ page }) => {
