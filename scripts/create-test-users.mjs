@@ -45,10 +45,19 @@ const ADMIN_EMAIL = env.TEST_ADMIN_EMAIL
 const ADMIN_PASSWORD = env.TEST_ADMIN_PASSWORD
 const MENTOR_EMAIL = env.TEST_MENTOR_EMAIL
 const MENTOR_PASSWORD = env.TEST_MENTOR_PASSWORD
+const STUDENT_EMAIL = env.TEST_STUDENT_EMAIL
+const STUDENT_PASSWORD = env.TEST_STUDENT_PASSWORD
 
-const missing = ['VITE_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'TEST_ADMIN_EMAIL', 'TEST_ADMIN_PASSWORD', 'TEST_MENTOR_EMAIL', 'TEST_MENTOR_PASSWORD'].filter(
-  (k) => !env[k],
-)
+const missing = [
+  'VITE_SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'TEST_ADMIN_EMAIL',
+  'TEST_ADMIN_PASSWORD',
+  'TEST_MENTOR_EMAIL',
+  'TEST_MENTOR_PASSWORD',
+  'TEST_STUDENT_EMAIL',
+  'TEST_STUDENT_PASSWORD',
+].filter((k) => !env[k])
 if (missing.length > 0) {
   console.error(`Missing required values: ${missing.join(', ')}`)
   console.error('Set these in .env (VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) and .env.test (the rest) — see .env.test.example.')
@@ -89,5 +98,7 @@ async function upsertUser(email, password, fullName, role) {
 
 await upsertUser(ADMIN_EMAIL, ADMIN_PASSWORD, 'Test Admin', 'admin')
 await upsertUser(MENTOR_EMAIL, MENTOR_PASSWORD, 'Test Mentor', 'mentor')
+await upsertUser(STUDENT_EMAIL, STUDENT_PASSWORD, 'Test Student', 'student')
 
 console.log('\nDone. Log in at /login with the emails/passwords from .env.test.')
+console.log('(The Playwright E2E suite — npm run test:e2e — provisions and links these same three accounts itself; you do not need to run this script first just for that.)')

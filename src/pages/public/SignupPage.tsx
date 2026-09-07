@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
 import { Button, LinkButton } from '@/components/ui/Button'
@@ -10,6 +10,7 @@ import { IllSignup } from '@/components/ui/illustrations'
 
 export default function SignupPage() {
   const { signUp, signInWithGoogle } = useAuth()
+  const navigate = useNavigate()
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -22,16 +23,21 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
-    const { error } = await signUp(email, password, fullName)
+    const { error, needsEmailConfirmation } = await signUp(email, password, fullName)
     setSubmitting(false)
     if (error) {
       setError(error)
       return
     }
     // Signup automatically enrolls the student (trigger-driven, PD-001/A-003)
-    // once their session exists; if email confirmation is required there is
-    // no session yet, so we show a "check your email" state instead.
-    setConfirmSent(true)
+    // once their session exists. If the project requires email confirmation
+    // there's no session yet, so show a "check your email" state instead —
+    // otherwise the user is already signed in, so go straight in.
+    if (needsEmailConfirmation) {
+      setConfirmSent(true)
+    } else {
+      navigate('/dashboard', { replace: true })
+    }
   }
 
   async function handleGoogle() {

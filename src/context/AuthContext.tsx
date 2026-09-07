@@ -8,7 +8,11 @@ interface AuthContextValue {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signInWithGoogle: () => Promise<{ error: string | null }>
   signOut: () => Promise<void>
@@ -67,7 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Fire-and-forget: a failed welcome email should never block signup.
       supabase.functions.invoke('send-welcome-email', { body: { userId: data.user.id } }).catch(() => {})
     }
-    return { error: error?.message ?? null }
+    // signUp only returns a session when the project doesn't require email
+    // confirmation (or already has a valid one). Callers need this to know
+    // whether to show a "check your email" state or just continue signed in.
+    return { error: error?.message ?? null, needsEmailConfirmation: !error && !data.session }
   }
 
   async function signIn(email: string, password: string) {
