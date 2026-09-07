@@ -35,7 +35,7 @@ test.describe('Student settings', () => {
     const tempPassword = `${originalPassword}-e2e-temp`
 
     await page.goto('/settings')
-    await page.getByLabel('New password').fill(tempPassword)
+    await page.getByLabel('New password', { exact: true }).fill(tempPassword)
     await page.getByLabel('Confirm new password').fill(tempPassword)
     await page.getByRole('button', { name: /update password/i }).click()
     await expect(page.getByText(/password updated/i)).toBeVisible({ timeout: 15_000 })
@@ -44,7 +44,7 @@ test.describe('Student settings', () => {
     // TEST_STUDENT_PASSWORD in .env.test keeps working for every other
     // spec in the suite (global-setup would also self-heal this on the
     // next run, but don't rely on that within a single run).
-    await page.getByLabel('New password').fill(originalPassword)
+    await page.getByLabel('New password', { exact: true }).fill(originalPassword)
     await page.getByLabel('Confirm new password').fill(originalPassword)
     await page.getByRole('button', { name: /update password/i }).click()
     await expect(page.getByText(/password updated/i)).toBeVisible({ timeout: 15_000 })
@@ -52,7 +52,7 @@ test.describe('Student settings', () => {
 
   test('mismatched confirmation is rejected before submitting', async ({ page }) => {
     await page.goto('/settings')
-    await page.getByLabel('New password').fill('one-password-123')
+    await page.getByLabel('New password', { exact: true }).fill('one-password-123')
     await page.getByLabel('Confirm new password').fill('a-different-password-456')
     await page.getByRole('button', { name: /update password/i }).click()
     await expect(page.getByText(/passwords don't match/i)).toBeVisible()
@@ -89,7 +89,10 @@ test.describe('Danger zone', () => {
 
   test('log out is available from Settings', async ({ page }) => {
     await page.goto('/settings')
-    await expect(page.getByRole('button', { name: /^log out$/i })).toBeVisible()
+    // Scoped to the Danger Zone card — AppNav also has its own "log out"
+    // button on every page, including this one.
+    const dangerZone = page.locator('.border-fail.bg-fail-bg')
+    await expect(dangerZone.getByRole('button', { name: /^log out$/i })).toBeVisible()
   })
 
   test('delete requires typing DELETE — button stays disabled otherwise', async ({ page }) => {

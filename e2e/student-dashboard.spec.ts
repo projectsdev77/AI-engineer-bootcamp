@@ -18,7 +18,9 @@ test.describe('Dashboard', () => {
 
   test('week 1 is unlocked and clickable; later weeks show locked state until earned', async ({ page }) => {
     await page.goto('/dashboard')
-    await expect(page.getByText(/week 1:/i)).toBeVisible()
+    // "Week 1:" legitimately appears twice when week 1 is the active week
+    // (the "continue where you left off" banner, and the week list row).
+    await expect(page.getByText(/week 1:/i).first()).toBeVisible()
     const lockedBadges = page.getByText('locked', { exact: true })
     // Not asserting a specific count (progress varies run to run) — just
     // that locked weeks render the locked affordance, not a broken link.

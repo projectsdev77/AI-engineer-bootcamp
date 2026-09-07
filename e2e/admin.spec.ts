@@ -121,7 +121,7 @@ test.describe('Certificate editor', () => {
     if (await createDefault.isVisible().catch(() => false)) {
       await createDefault.click()
     }
-    await expect(page.getByLabel('Title')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByLabel('Title', { exact: true })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText(/live preview/i)).toBeVisible()
   })
 })
