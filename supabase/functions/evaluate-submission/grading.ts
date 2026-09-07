@@ -48,14 +48,20 @@ export function quizFeedback(result: QuizGradeResult): string {
     : `You scored ${result.score}% (${result.correctCount}/${result.total} correct). Review the material and try again — attempts are unlimited.`
 }
 
-export interface AnthropicContentBlock {
-  type: string
-  name?: string
-  input?: unknown
+export interface GeminiFunctionCall {
+  name: string
+  args?: Record<string, unknown>
+}
+export interface GeminiPart {
+  functionCall?: GeminiFunctionCall
   [key: string]: unknown
 }
-export interface AnthropicMessageResponse {
-  content: AnthropicContentBlock[]
+export interface GeminiGenerateContentResponse {
+  candidates?: {
+    content?: { parts?: GeminiPart[] }
+    finishReason?: string
+  }[]
+  promptFeedback?: { blockReason?: string }
 }
 
 export interface GradeVerdict {
@@ -63,17 +69,18 @@ export interface GradeVerdict {
   feedback: string
 }
 
-/** Extracts and validates the structured grading verdict from a Messages API response. */
-export function parseGradeVerdict(response: AnthropicMessageResponse): GradeVerdict {
-  const toolUse = response.content?.find(
-    (block) => block.type === 'tool_use' && block.name === 'submit_grade',
-  )
-  if (!toolUse) {
-    throw new Error('No submit_grade tool_use block in Anthropic response')
+/** Extracts and validates the structured grading verdict from a generateContent response. */
+export function parseGradeVerdict(response: GeminiGenerateContentResponse): GradeVerdict {
+  if (response.promptFeedback?.blockReason) {
+    throw new Error(`Gemini blocked the request: ${response.promptFeedback.blockReason}`)
   }
-  const input = toolUse.input as Record<string, unknown>
-  const status = input?.status
-  const feedback = input?.feedback
+  const call = response.candidates?.[0]?.content?.parts?.find((p) => p.functionCall?.name === 'submit_grade')
+    ?.functionCall
+  if (!call) {
+    throw new Error('No submit_grade function call in Gemini response')
+  }
+  const status = call.args?.status
+  const feedback = call.args?.feedback
   if (status !== 'passed' && status !== 'needs_work') {
     throw new Error(`Invalid status from model: ${JSON.stringify(status)}`)
   }

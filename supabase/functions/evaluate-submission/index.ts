@@ -4,23 +4,24 @@
 // Runs with the service role (bypasses RLS) because it needs to read
 // quiz_options.is_correct — the one thing students must never see directly
 // (section 7). Quiz grading is deterministic and synchronous; text/url
-// assignments get an AI-generated verdict from Claude. Both paths always
-// end with evaluation_status either 'complete' or 'failed' — PD-002's two
-// human-review triggers are `evaluation_status = 'failed'` (this function
-// giving up) and a student's own flag_submission_for_review() call.
+// assignments get an AI-generated verdict from Gemini (free-tier API key,
+// see GEMINI_API_KEY below). Both paths always end with evaluation_status
+// either 'complete' or 'failed' — PD-002's two human-review triggers are
+// `evaluation_status = 'failed'` (this function giving up) and a student's
+// own flag_submission_for_review() call.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   buildGradingPrompt,
   gradeQuiz,
   parseGradeVerdict,
   quizFeedback,
-  type AnthropicMessageResponse,
+  type GeminiGenerateContentResponse,
 } from './grading.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
-const ANTHROPIC_MODEL = 'claude-sonnet-5'
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
+const GEMINI_MODEL = 'gemini-2.5-flash'
 
 const MAX_AI_EVALS_PER_DAY = 30 // PD-008
 const MAX_AI_ATTEMPTS = 2 // "AI evaluation failed after retries" (PD-002)
@@ -158,7 +159,7 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
   let lastError: unknown = null
   for (let attempt = 1; attempt <= MAX_AI_ATTEMPTS; attempt++) {
     try {
-      const verdict = parseGradeVerdict(await callAnthropic(system, user))
+      const verdict = parseGradeVerdict(await callGemini(system, user))
 
       const { error: updateErr } = await supabase
         .from('submissions')
@@ -167,7 +168,7 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
           ai_suggested_status: verdict.status,
           final_status: verdict.status,
           evaluation_status: 'complete',
-          ai_model: ANTHROPIC_MODEL,
+          ai_model: GEMINI_MODEL,
         })
         .eq('id', submission.id)
       if (updateErr) throw updateErr
@@ -188,46 +189,47 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
   throw lastError instanceof Error ? lastError : new Error(String(lastError))
 }
 
-async function callAnthropic(system: string, userMessage: string): Promise<AnthropicMessageResponse> {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+async function callGemini(system: string, userMessage: string): Promise<GeminiGenerateContentResponse> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      max_tokens: 1024,
-      system,
-      messages: [{ role: 'user', content: userMessage }],
+      system_instruction: { parts: [{ text: system }] },
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
       tools: [
         {
-          name: 'submit_grade',
-          description: 'Submit the grading verdict and feedback for this assignment submission.',
-          input_schema: {
-            type: 'object',
-            properties: {
-              status: {
-                type: 'string',
-                enum: ['passed', 'needs_work'],
-                description: 'Whether the submission meets the rubric well enough to pass.',
-              },
-              feedback: {
-                type: 'string',
-                description: 'Constructive, specific markdown feedback for the student (2-5 sentences).',
+          function_declarations: [
+            {
+              name: 'submit_grade',
+              description: 'Submit the grading verdict and feedback for this assignment submission.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['passed', 'needs_work'],
+                    description: 'Whether the submission meets the rubric well enough to pass.',
+                  },
+                  feedback: {
+                    type: 'string',
+                    description: 'Constructive, specific markdown feedback for the student (2-5 sentences).',
+                  },
+                },
+                required: ['status', 'feedback'],
               },
             },
-            required: ['status', 'feedback'],
-          },
+          ],
         },
       ],
-      tool_choice: { type: 'tool', name: 'submit_grade' },
+      tool_config: {
+        function_calling_config: { mode: 'ANY', allowed_function_names: ['submit_grade'] },
+      },
     }),
   })
 
   if (!res.ok) {
-    throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`)
+    throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)
   }
-  return (await res.json()) as AnthropicMessageResponse
+  return (await res.json()) as GeminiGenerateContentResponse
 }
