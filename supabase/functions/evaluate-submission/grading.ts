@@ -90,11 +90,17 @@ export function parseGradeVerdict(response: GeminiGenerateContentResponse): Grad
   return { status, feedback }
 }
 
+/** Result of trying to fetch a submitted URL's real content server-side, before grading it. */
+export type UrlFetchResult =
+  | { ok: true; text: string; sourceLabel: string; finalUrl?: string }
+  | { ok: false; error: string }
+
 export function buildGradingPrompt(params: {
   assignmentType: 'text' | 'url'
   instructions: string
   rubric: string | null
   content: string
+  urlFetch?: UrlFetchResult
 }): { system: string; user: string } {
   const system = `You are grading a student assignment for a self-paced AI engineering bootcamp. Be constructive, specific, and honest — this feedback is shown directly to the student. Base your verdict on the rubric, not on how much effort the submission looks like it took.
 
@@ -104,14 +110,112 @@ ${params.instructions}
 Rubric:
 ${params.rubric ?? 'Use your judgment based on the instructions above.'}`
 
-  const user =
-    params.assignmentType === 'url'
-      ? `The student submitted this URL as their work: ${params.content}
-
-You cannot browse the link. Evaluate plausibility and completeness against the rubric based on the URL itself and the assignment instructions (e.g. does it look like the right kind of host/repo for what was asked). If you genuinely cannot assess it from the URL alone, lean toward "needs_work" and say exactly what the student should double-check or link instead.`
-      : `Student's submission:
+  let user: string
+  if (params.assignmentType === 'text') {
+    user = `Student's submission:
 
 ${params.content}`
+  } else if (params.urlFetch?.ok) {
+    const redirectNote =
+      params.urlFetch.finalUrl && params.urlFetch.finalUrl !== params.content
+        ? ` (redirected to ${params.urlFetch.finalUrl})`
+        : ''
+    user = `The student submitted this URL as their work: ${params.content}${redirectNote}
+
+Retrieved content (${params.urlFetch.sourceLabel}), fetched just now:
+
+"""
+${params.urlFetch.text}
+"""
+
+Evaluate this actual retrieved content against the rubric and instructions above — do not just judge the URL string. If the content looks unrelated to the assignment or clearly insufficient, say so specifically.`
+  } else if (params.urlFetch && !params.urlFetch.ok) {
+    user = `The student submitted this URL as their work: ${params.content}
+
+The URL could not be verified just now: ${params.urlFetch.error}. This usually means the link is broken, private, requires login, or the site is briefly down. Since the actual content can't be confirmed, lean toward "needs_work" unless the assignment instructions explicitly don't require a live, public link — and tell the student exactly what to check (e.g. "make sure the repository is public" or "confirm the link loads without signing in").`
+  } else {
+    // No fetch was attempted — fall back to plausibility-only grading rather
+    // than fail the whole submission over it.
+    user = `The student submitted this URL as their work: ${params.content}
+
+You cannot browse the link. Evaluate plausibility and completeness against the rubric based on the URL itself and the assignment instructions. If you genuinely cannot assess it from the URL alone, lean toward "needs_work" and say exactly what the student should double-check or link instead.`
+  }
 
   return { system, user }
+}
+
+// ---------------------------------------------------------------------------
+// URL-content helpers (pure — no network here; index.ts does the fetching and
+// hands the raw bytes/errors to these to turn into prompt-ready text).
+// ---------------------------------------------------------------------------
+
+/** Strips scripts/styles/tags from raw HTML down to plain, whitespace-collapsed text. */
+export function htmlToText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export function truncateForPrompt(text: string, maxChars = 6000): string {
+  if (text.length <= maxChars) return text
+  return `${text.slice(0, maxChars)}\n\n[...truncated]`
+}
+
+/** Parses a GitHub repo URL into {owner, repo}, or null if it isn't one. */
+export function parseGithubRepoUrl(url: string): { owner: string; repo: string } | null {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return null
+  }
+  if (!/^(www\.)?github\.com$/i.test(parsed.hostname)) return null
+  const parts = parsed.pathname.split('/').filter(Boolean)
+  if (parts.length < 2) return null
+  return { owner: parts[0], repo: parts[1].replace(/\.git$/i, '') }
+}
+
+const PRIVATE_HOSTNAME_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^0\.0\.0\.0$/,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./, // link-local — includes cloud metadata endpoints (e.g. 169.254.169.254)
+  /^::1$/,
+  /^fc[0-9a-f]{2}:/i,
+  /^fd[0-9a-f]{2}:/i,
+  /^fe80:/i,
+]
+
+/**
+ * Basic SSRF guard for server-side-fetching a student-submitted URL: only
+ * http(s) to what looks like a public hostname. This is a literal/hostname
+ * check, not DNS-pinned — it doesn't stop a hostname that *resolves* to a
+ * private address at fetch time (DNS rebinding), which would need a custom
+ * resolver to fully close. Good enough against the obvious/naive case
+ * (submitting `http://localhost/...` or a raw private IP) without adding a
+ * custom DNS layer for a bootcamp-scale grading tool.
+ */
+export function isSafeUrlToFetch(url: string): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return false
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, '')
+  return !PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(hostname))
 }

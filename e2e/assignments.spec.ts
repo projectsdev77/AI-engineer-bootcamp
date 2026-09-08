@@ -174,7 +174,7 @@ test.describe('URL assignment (real Gemini grading)', () => {
     await expect(page.getByText(/expected a link from/i)).toBeVisible()
   })
 
-  test('a valid, allowed-host URL submits and gets AI feedback', async ({ page }) => {
+  test('a URL that does not resolve to anything real still grades gracefully (server-side fetch fails, AI leans needs_work)', async ({ page }) => {
     test.setTimeout(120_000)
     const ref = await findAssignmentByType('url')
     test.skip(!ref, 'No url assignment visible in the seeded content.')
@@ -184,10 +184,42 @@ test.describe('URL assignment (real Gemini grading)', () => {
 
     await loginAsThrowawayStudent(page)
     await page.goto(`/weeks/${ref!.weekId}/assignments/${ref!.id}`)
-    await page.locator('input[type="url"]').fill(`https://${host}/e2e-test/example-project`)
+    // evaluate-submission tries to fetch this server-side (grading.ts /
+    // index.ts) — a made-up repo path 404s, which should surface as
+    // "needs_work" with feedback telling the student to check the link,
+    // not as an evaluation failure.
+    await page.locator('input[type="url"]').fill(`https://${host}/e2e-test-nonexistent/example-project-${Date.now()}`)
     await page.getByRole('button', { name: /^submit$/i }).click()
 
     await expect(page.getByText(/ai feedback/i)).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByText('passed', { exact: true }).or(page.getByText('needs work', { exact: true }))).toBeVisible()
+  })
+
+  test('a real, reachable GitHub repo gets graded on its actual README content', async ({ page }) => {
+    test.setTimeout(150_000)
+    // A different url assignment than the previous test used (offset 0),
+    // to sidestep that same assignment's 60s cooldown — falls back to the
+    // same one and waits the cooldown out if there's only one url assignment.
+    let ref = await findAssignmentByType('url', 1)
+    if (!ref) ref = await findAssignmentByType('url', 0)
+    test.skip(!ref, 'No url assignment visible in the seeded content.')
+    const assignment = await getAssignment(ref!.id)
+    const config = assignment.config as { allowed_hosts?: string[] }
+    const allowsGithub = !config.allowed_hosts || config.allowed_hosts.length === 0 || config.allowed_hosts.includes('github.com')
+    test.skip(!allowsGithub, 'This assignment does not accept github.com links.')
+
+    await loginAsThrowawayStudent(page)
+    await page.goto(`/weeks/${ref!.weekId}/assignments/${ref!.id}`)
+    await expect(page.getByText(/you can submit again in/i)).toHaveCount(0, { timeout: 65_000 })
+    // GitHub's own long-standing canonical demo repo — stable, public,
+    // and has a real README, so this exercises the server-side
+    // README-fetch enrichment path end-to-end (not just the URL string).
+    await page.locator('input[type="url"]').fill('https://github.com/octocat/Hello-World')
+    await page.getByRole('button', { name: /^submit$/i }).click()
+
+    await expect(page.getByText(/ai feedback/i)).toBeVisible({ timeout: 60_000 })
+    // Real content was fetched and graded either way — this just confirms
+    // the pipeline produced a real verdict, not a stuck/failed evaluation.
     await expect(page.getByText('passed', { exact: true }).or(page.getByText('needs work', { exact: true }))).toBeVisible()
   })
 })

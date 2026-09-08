@@ -13,9 +13,14 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   buildGradingPrompt,
   gradeQuiz,
+  htmlToText,
+  isSafeUrlToFetch,
+  parseGithubRepoUrl,
   parseGradeVerdict,
   quizFeedback,
+  truncateForPrompt,
   type GeminiGenerateContentResponse,
+  type UrlFetchResult,
 } from './grading.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -25,6 +30,10 @@ const GEMINI_MODEL = 'gemini-2.5-flash'
 
 const MAX_AI_EVALS_PER_DAY = 30 // PD-008
 const MAX_AI_ATTEMPTS = 2 // "AI evaluation failed after retries" (PD-002)
+
+const URL_FETCH_TIMEOUT_MS = 10_000
+const MAX_URL_CONTENT_CHARS = 6000
+const MAX_URL_CONTENT_LENGTH_BYTES = 2_000_000 // skip parsing anything advertising >2MB
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -149,11 +158,15 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
     throw new Error(`Daily AI evaluation limit reached (${MAX_AI_EVALS_PER_DAY}/day). A mentor will review this.`)
   }
 
+  const urlFetch: UrlFetchResult | undefined =
+    assignment.assignment_type === 'url' ? await fetchUrlContent(submission.content ?? '') : undefined
+
   const { system, user } = buildGradingPrompt({
     assignmentType: assignment.assignment_type,
     instructions: assignment.instructions,
     rubric: assignment.rubric,
     content: submission.content ?? '',
+    urlFetch,
   })
 
   let lastError: unknown = null
@@ -232,4 +245,89 @@ async function callGemini(system: string, userMessage: string): Promise<GeminiGe
     throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)
   }
   return (await res.json()) as GeminiGenerateContentResponse
+}
+
+// ---------------------------------------------------------------------------
+// URL-submission grading: fetch what the student actually linked to, so
+// Gemini judges real content instead of just guessing from the URL string.
+// GitHub repo links get their README (or repo metadata if there's no
+// README); everything else gets its page text. See grading.ts for the pure
+// text-processing/SSRF-guard helpers used here.
+// ---------------------------------------------------------------------------
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), URL_FETCH_TIMEOUT_MS)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal, redirect: 'follow' })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function fetchGithubReadme(owner: string, repo: string): Promise<UrlFetchResult> {
+  const headers = { Accept: 'application/vnd.github.v3.raw', 'User-Agent': 'ai-engineer-bootcamp-grader' }
+  try {
+    const readmeRes = await fetchWithTimeout(`https://api.github.com/repos/${owner}/${repo}/readme`, { headers })
+    if (readmeRes.ok) {
+      const text = await readmeRes.text()
+      return { ok: true, text: truncateForPrompt(text, MAX_URL_CONTENT_CHARS), sourceLabel: 'README.md' }
+    }
+
+    // No README (404), or something else — repo metadata is still a real,
+    // verifiable signal (does it exist, is it public, what is it).
+    const metaRes = await fetchWithTimeout(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'ai-engineer-bootcamp-grader' },
+    })
+    if (!metaRes.ok) {
+      return { ok: false, error: `GitHub repo not found or not public (${owner}/${repo}, HTTP ${metaRes.status})` }
+    }
+    const meta = await metaRes.json()
+    const blurb = [
+      `Repository: ${meta.full_name}`,
+      meta.description ? `Description: ${meta.description}` : null,
+      meta.language ? `Primary language: ${meta.language}` : null,
+      'No README.md found in this repository.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    return { ok: true, text: blurb, sourceLabel: 'repository metadata (no README found)' }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+async function fetchGenericUrl(url: string): Promise<UrlFetchResult> {
+  try {
+    const res = await fetchWithTimeout(url)
+    if (!res.ok) {
+      return { ok: false, error: `HTTP ${res.status} ${res.statusText}` }
+    }
+    const contentLength = Number(res.headers.get('content-length') ?? 0)
+    if (contentLength > MAX_URL_CONTENT_LENGTH_BYTES) {
+      return { ok: true, text: '(Page content too large to inspect — judge plausibility from the URL alone.)', sourceLabel: 'content-length only', finalUrl: res.url }
+    }
+    const contentType = res.headers.get('content-type') ?? ''
+    if (!contentType.includes('text/html') && !contentType.includes('text/plain')) {
+      return {
+        ok: true,
+        text: `(The URL is reachable but returned non-text content: ${contentType || 'unknown content type'}. Judge plausibility from the URL and content-type alone.)`,
+        sourceLabel: 'content-type only',
+        finalUrl: res.url,
+      }
+    }
+    const html = await res.text()
+    return { ok: true, text: truncateForPrompt(htmlToText(html), MAX_URL_CONTENT_CHARS), sourceLabel: 'page content', finalUrl: res.url }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+async function fetchUrlContent(url: string): Promise<UrlFetchResult> {
+  if (!url) return { ok: false, error: 'No URL submitted' }
+  if (!isSafeUrlToFetch(url)) {
+    return { ok: false, error: 'URL points to a non-public or unsupported address and was not fetched' }
+  }
+  const repo = parseGithubRepoUrl(url)
+  return repo ? fetchGithubReadme(repo.owner, repo.repo) : fetchGenericUrl(url)
 }
