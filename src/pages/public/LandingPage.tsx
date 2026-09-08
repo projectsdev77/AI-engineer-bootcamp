@@ -1,26 +1,23 @@
 import { Link } from 'react-router-dom'
 import PublicNav from '@/components/layout/PublicNav'
 import { LinkButton } from '@/components/ui/Button'
-import { ListIcon, MessageIcon, StarIcon, CheckIcon } from '@/components/ui/icons'
+import { CheckIcon } from '@/components/ui/icons'
 import { IllCohort, IllFeedback, IllMentor } from '@/components/ui/illustrations'
 
-const PILLARS = [
+const WHY_ROWS = [
   {
-    icon: ListIcon,
-    chip: 'bg-lime',
-    title: 'Sequenced, not scattered',
+    title: 'Sequenced, not ',
+    highlight: 'scattered',
     body: 'Twelve weeks build on each other. You unlock week two by finishing week one — no picking a random tutorial and hoping it is the right next step.',
   },
   {
-    icon: MessageIcon,
-    chip: 'bg-blue-50',
     title: 'Feedback on real work',
+    highlight: null,
     body: 'Every assignment gets a response: AI-generated feedback the moment you submit, with a human mentor one request away if you want a second look.',
   },
   {
-    icon: StarIcon,
-    chip: 'bg-blush',
     title: 'Accountability without a cohort',
+    highlight: null,
     body: 'No start dates, no deadlines, no late penalties. Progress is yours to make — the platform just makes sure you always know what is next.',
   },
 ]
@@ -99,19 +96,23 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* value cards */}
+        {/* why this, not another list of links */}
         <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6">
-          <p className="text-center font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
             [ why this instead of another list of links ]
           </p>
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {PILLARS.map((pillar) => (
-              <div key={pillar.title} className="card">
-                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-[10px] border-2 border-ink ${pillar.chip}`}>
-                  <pillar.icon className="h-5 w-5 text-ink" />
-                </span>
-                <h3 className="mt-4 font-display text-xl font-bold text-ink">{pillar.title}</h3>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{pillar.body}</p>
+          <div className="mt-6 border-y border-hairline">
+            {WHY_ROWS.map((row, i) => (
+              <div
+                key={row.body}
+                className={`grid gap-x-6 gap-y-2 py-7 sm:grid-cols-[64px_1fr_1fr] sm:items-baseline ${i > 0 ? 'border-t border-hairline' : ''}`}
+              >
+                <span className="font-mono text-[13px] font-bold text-faint">{String(i + 1).padStart(2, '0')}</span>
+                <h3 className="font-display text-2xl font-bold text-ink">
+                  {row.title}
+                  {row.highlight && <span className="inline-block rounded-[6px] bg-lime px-1.5">{row.highlight}</span>}
+                </h3>
+                <p className="max-w-md text-[14.5px] leading-relaxed text-muted sm:justify-self-end sm:text-right">{row.body}</p>
               </div>
             ))}
           </div>

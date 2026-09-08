@@ -189,6 +189,25 @@
   }
   .ill-frame svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
   .ill-frame svg * { vector-effect: non-scaling-stroke; }
+
+  /*
+   * Raster illustrations (photos/line-art PNGs), as opposed to .ill-frame's
+   * hand-drawn inline SVGs. No box of its own — sits directly on whatever
+   * surface it's placed on (a colored card, the page background) instead of
+   * carrying a frame + fill that can visibly mismatch it. mix-blend-mode:
+   * multiply drops a flat white background out of the source PNG so it
+   * doesn't show as a box either, as long as the art is dark linework on a
+   * plain white/light ground — true alpha transparency is still better when
+   * the source has it (multiply is then just a no-op), but this covers
+   * stock illustration exports that ship without transparency.
+   */
+  .ill-photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
