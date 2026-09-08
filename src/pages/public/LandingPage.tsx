@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom'
 import PublicNav from '@/components/layout/PublicNav'
 import { LinkButton } from '@/components/ui/Button'
 import { CheckIcon } from '@/components/ui/icons'
-import { IllCohort, IllFeedback, IllMentor } from '@/components/ui/illustrations'
+import engineerCodingIll from '@/assets/illustrations/engineer-coding.png'
+import humanReviewIll from '@/assets/illustrations/human-review.jpg'
+import communityIll from '@/assets/illustrations/community.jpg'
 
 const WHY_ROWS = [
   {
@@ -122,8 +124,8 @@ export default function LandingPage() {
         <section className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-panel border-2 border-ink bg-blush p-7">
-              <div className="ill-frame aspect-[2.6/1] text-ink">
-                <IllFeedback />
+              <div className="h-56">
+                <img src={engineerCodingIll} alt="" className="ill-photo" />
               </div>
               <h3 className="mt-5 font-display text-2xl font-bold text-ink">Feedback the moment you submit</h3>
               <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
@@ -134,8 +136,8 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="rounded-panel border-2 border-ink bg-lime p-7">
-              <div className="ill-frame aspect-[2.6/1] text-ink">
-                <IllMentor />
+              <div className="h-56">
+                <img src={humanReviewIll} alt="" className="ill-photo" />
               </div>
               <h3 className="mt-5 font-display text-2xl font-bold text-ink">A human, whenever you want one</h3>
               <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
@@ -154,8 +156,8 @@ export default function LandingPage() {
             <div>
               <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
               <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ three honest tests ]</p>
-              <div className="ill-frame mt-6 aspect-square text-ink">
-                <IllCohort />
+              <div className="mt-6 aspect-square">
+                <img src={communityIll} alt="" className="ill-photo" />
               </div>
             </div>
             <ul className="space-y-4">
