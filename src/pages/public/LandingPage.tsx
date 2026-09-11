@@ -152,17 +152,17 @@ export default function LandingPage() {
 
         {/* is this for you */}
         <section className="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6">
-          <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.2fr]">
             <div>
               <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
               <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ three honest tests ]</p>
-              <div className="mt-6 aspect-square">
+              <div className="ill-frame mx-auto mt-6 aspect-square max-w-[320px] lg:mx-0">
                 <img src={communityIll} alt="" className="ill-photo" />
               </div>
             </div>
-            <ul className="space-y-4">
+            <ul className="divide-y divide-hairline border-y border-hairline">
               {AUDIENCE.map((line) => (
-                <li key={line} className="card flex items-start gap-4">
+                <li key={line} className="flex items-start gap-4 py-5">
                   <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] border-2 border-ink bg-lime">
                     <CheckIcon className="h-4 w-4 text-ink" />
                   </span>
