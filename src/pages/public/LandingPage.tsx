@@ -99,7 +99,7 @@ export default function LandingPage() {
         </section>
 
         {/* why this, not another list of links */}
-        <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6">
+        <section className="mx-auto max-w-[1280px] px-4 py-20 sm:px-6 sm:py-24">
           <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
             [ why this instead of another list of links ]
           </p>
@@ -121,7 +121,7 @@ export default function LandingPage() {
         </section>
 
         {/* feature panels */}
-        <section className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
+        <section className="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6 sm:pb-24">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-panel border-2 border-ink bg-blush p-7">
               <div className="ill-frame aspect-[2.8/1] w-full">
@@ -151,7 +151,7 @@ export default function LandingPage() {
         </section>
 
         {/* is this for you */}
-        <section className="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6">
+        <section className="mx-auto max-w-[1280px] px-4 pb-24 sm:px-6 sm:pb-28">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.2fr]">
             <div>
               <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
