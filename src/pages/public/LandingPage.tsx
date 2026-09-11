@@ -124,7 +124,7 @@ export default function LandingPage() {
         <section className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-panel border-2 border-ink bg-blush p-7">
-              <div className="ill-frame mx-auto h-44 w-full max-w-[280px]">
+              <div className="ill-frame aspect-[2.8/1] w-full">
                 <img src={engineerCodingIll} alt="" className="ill-photo" />
               </div>
               <h3 className="mt-5 font-display text-2xl font-bold text-ink">Feedback the moment you submit</h3>
@@ -136,7 +136,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="rounded-panel border-2 border-ink bg-lime p-7">
-              <div className="ill-frame mx-auto h-44 w-full max-w-[280px]">
+              <div className="ill-frame aspect-[2.8/1] w-full">
                 <img src={humanReviewIll} alt="" className="ill-photo" />
               </div>
               <h3 className="mt-5 font-display text-2xl font-bold text-ink">A human, whenever you want one</h3>
