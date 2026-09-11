@@ -156,13 +156,13 @@ export default function LandingPage() {
             <div>
               <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
               <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ three honest tests ]</p>
-              <div className="ill-frame mx-auto mt-6 aspect-square max-w-[320px] lg:mx-0">
+              <div className="ill-frame mx-auto mt-6 aspect-[3/2] max-w-[380px] lg:mx-0">
                 <img src={communityIll} alt="" className="ill-photo" />
               </div>
             </div>
             <ul className="divide-y divide-hairline border-y border-hairline">
               {AUDIENCE.map((line) => (
-                <li key={line} className="flex items-start gap-4 py-5">
+                <li key={line} className="flex items-start gap-4 py-4">
                   <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] border-2 border-ink bg-lime">
                     <CheckIcon className="h-4 w-4 text-ink" />
                   </span>
