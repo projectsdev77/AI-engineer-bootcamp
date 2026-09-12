@@ -34,6 +34,7 @@ export default function AssignmentPage() {
     submitText,
     submitQuiz,
     flagForReview,
+    refresh,
   } = useAssignmentDetail(assignmentId)
 
   if (loading) return <FullPageSpinner />
@@ -116,6 +117,7 @@ export default function AssignmentPage() {
                       submission={s}
                       isLatest={s.id === latest?.id}
                       continueHref={week ? '/dashboard' : undefined}
+                      onRefresh={() => void refresh()}
                       onFlag={(reason) => {
                         if (s.id === latest?.id) void flagForReview(reason)
                       }}

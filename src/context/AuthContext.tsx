@@ -18,7 +18,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>
-  updatePassword: (newPassword: string) => Promise<{ error: string | null }>
+  updatePassword: (newPassword: string, currentPassword?: string) => Promise<{ error: string | null }>
   deleteAccount: () => Promise<{ error: string | null }>
 }
 
@@ -65,7 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
     })
     if (!error && data.user) {
       // Fire-and-forget: a failed welcome email should never block signup.
@@ -107,7 +110,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null }
   }
 
-  async function updatePassword(newPassword: string) {
+  // When currentPassword is supplied (the "change password while logged in"
+  // flow, as opposed to the emailed reset-link flow which already proves
+  // identity), verify it against the account before applying the change —
+  // updateUser alone would let anyone with a live session set a new password
+  // without ever proving they knew the old one.
+  async function updatePassword(newPassword: string, currentPassword?: string) {
+    if (currentPassword) {
+      if (!session?.user?.email) {
+        return { error: 'Your session has expired. Please log in again.' }
+      }
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: session.user.email,
+        password: currentPassword,
+      })
+      if (reauthError) {
+        return { error: 'Current password is incorrect.' }
+      }
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     return { error: error?.message ?? null }
   }

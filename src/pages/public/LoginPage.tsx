@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Label } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
+import authIll from '@/assets/illustrations/engineer-coding.png'
 
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()
@@ -40,7 +41,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-paper">
       <PublicNav />
-      <main className="flex items-center justify-center px-4 py-16">
+      <main className="mx-auto flex max-w-[900px] flex-col-reverse items-center gap-10 px-4 py-16 lg:flex-row lg:items-stretch lg:justify-center">
+        <div className="ill-frame hidden aspect-[3/4] w-[300px] shrink-0 lg:block">
+          <img src={authIll} alt="" className="ill-photo" />
+        </div>
+
         <div className="w-full max-w-[420px] rounded-panel border-[3px] border-ink bg-surface p-8 shadow-site">
           <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ welcome back ]</p>
           <h1 className="mt-2 font-display text-[38px] font-bold leading-none tracking-[-0.03em] text-ink">Log in</h1>

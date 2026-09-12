@@ -10,11 +10,12 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import Avatar from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Field, Label, TextAreaField, FieldHint } from '@/components/ui/Field'
+import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
 
 function ProfileForm() {
   const { user, profile, refreshProfile } = useAuth()
   const isStudent = profile?.role === 'student'
-  const [form, setForm] = useState({ full_name: '', avatar_url: '', background: '', weekly_hours_target: '' })
+  const [form, setForm] = useState({ full_name: '', background: '', weekly_hours_target: '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +24,6 @@ function ProfileForm() {
     if (profile) {
       setForm({
         full_name: profile.full_name ?? '',
-        avatar_url: profile.avatar_url ?? '',
         background: profile.background ?? '',
         weekly_hours_target: profile.weekly_hours_target != null ? String(profile.weekly_hours_target) : '',
       })
@@ -39,7 +39,6 @@ function ProfileForm() {
       .from('profiles')
       .update({
         full_name: form.full_name || null,
-        avatar_url: form.avatar_url || null,
         ...(isStudent
           ? {
               background: form.background || null,
@@ -60,16 +59,8 @@ function ProfileForm() {
   return (
     <Card className="space-y-4">
       <div className="flex items-center gap-4">
-        <Avatar name={form.full_name || profile?.full_name} url={form.avatar_url || profile?.avatar_url} size={56} />
-        <div className="flex-1">
-          <Label htmlFor="avatar_url">Avatar URL</Label>
-          <Field
-            id="avatar_url"
-            value={form.avatar_url}
-            onChange={(e) => setForm({ ...form, avatar_url: e.target.value })}
-            placeholder="https://…"
-          />
-        </div>
+        <Avatar name={form.full_name || profile?.full_name} size={56} />
+        <p className="text-[13px] text-muted">Your avatar shows the first letter of your name.</p>
       </div>
       <div>
         <Label>Email</Label>
@@ -117,6 +108,7 @@ function ProfileForm() {
 
 function PasswordForm() {
   const { updatePassword } = useAuth()
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
@@ -128,8 +120,9 @@ function PasswordForm() {
   async function handleSave() {
     setError(null)
     setSaved(false)
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters.')
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      setError(passwordError)
       return
     }
     if (newPassword !== confirmPassword) {
@@ -137,13 +130,14 @@ function PasswordForm() {
       return
     }
     setSaving(true)
-    const { error } = await updatePassword(newPassword)
+    const { error } = await updatePassword(newPassword, currentPassword)
     setSaving(false)
     if (error) {
       setError(error)
       return
     }
     setSaved(true)
+    setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
   }
@@ -151,6 +145,16 @@ function PasswordForm() {
   return (
     <Card className="space-y-4">
       <p className="meta">Change password</p>
+      <div>
+        <Label htmlFor="current_password">Current password</Label>
+        <Field
+          id="current_password"
+          type="password"
+          autoComplete="current-password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+      </div>
       <div>
         <Label htmlFor="new_password">New password</Label>
         <Field
@@ -161,7 +165,7 @@ function PasswordForm() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
-        <FieldHint>At least 8 characters.</FieldHint>
+        <FieldHint>{PASSWORD_REQUIREMENTS_TEXT}</FieldHint>
       </div>
       <div>
         <Label htmlFor="confirm_password">Confirm new password</Label>
@@ -178,7 +182,12 @@ function PasswordForm() {
       {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
       {saved && <Callout tone="pass">Password updated.</Callout>}
 
-      <Button type="button" variant="primary" onClick={() => void handleSave()} disabled={saving || !newPassword || !confirmPassword}>
+      <Button
+        type="button"
+        variant="primary"
+        onClick={() => void handleSave()}
+        disabled={saving || !currentPassword || !newPassword || !confirmPassword}
+      >
         {saving ? 'Updating…' : 'Update password'}
       </Button>
     </Card>
@@ -186,7 +195,7 @@ function PasswordForm() {
 }
 
 function DangerZone() {
-  const { signOut, deleteAccount } = useAuth()
+  const { deleteAccount } = useAuth()
   const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -207,53 +216,45 @@ function DangerZone() {
 
   return (
     <div className="rounded-panel border-2 border-fail bg-fail-bg p-6">
-      <p className="font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-fail-ink">Session</p>
-      <p className="mt-2 text-[14px] text-fail-ink">Signing out ends your session on this device.</p>
-      <Button type="button" variant="secondary" onClick={() => void signOut()} className="mt-4 border-fail text-fail-ink">
-        Log out
-      </Button>
+      <p className="font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-fail-ink">Delete account</p>
+      <p className="mt-2 text-[14px] text-fail-ink">
+        Permanently deletes your account and everything tied to it — submissions, messages, progress. This cannot be
+        undone.
+      </p>
 
-      <div className="mt-6 border-t-2 border-fail/30 pt-6">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-fail-ink">Delete account</p>
-        <p className="mt-2 text-[14px] text-fail-ink">
-          Permanently deletes your account and everything tied to it — submissions, messages, progress. This cannot
-          be undone.
-        </p>
-
-        {!confirming ? (
-          <Button type="button" variant="secondary" onClick={() => setConfirming(true)} className="mt-4 border-fail text-fail-ink">
-            Delete my account
-          </Button>
-        ) : (
-          <div className="mt-4 space-y-3">
-            <Label htmlFor="confirm_delete">Type DELETE to confirm</Label>
-            <Field id="confirm_delete" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="border-fail" />
-            {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => void handleDelete()}
-                disabled={confirmText !== 'DELETE' || deleting}
-                className="border-fail bg-fail text-white"
-              >
-                {deleting ? 'Deleting…' : 'Permanently delete'}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setConfirming(false)
-                  setConfirmText('')
-                  setError(null)
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
+      {!confirming ? (
+        <Button type="button" variant="secondary" onClick={() => setConfirming(true)} className="mt-4 border-fail text-fail-ink">
+          Delete my account
+        </Button>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <Label htmlFor="confirm_delete">Type DELETE to confirm</Label>
+          <Field id="confirm_delete" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="border-fail" />
+          {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void handleDelete()}
+              disabled={confirmText !== 'DELETE' || deleting}
+              className="border-fail bg-fail text-white"
+            >
+              {deleting ? 'Deleting…' : 'Permanently delete'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setConfirming(false)
+                setConfirmText('')
+                setError(null)
+              }}
+            >
+              Cancel
+            </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

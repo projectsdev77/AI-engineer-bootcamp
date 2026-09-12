@@ -32,6 +32,13 @@ const MAX_AI_EVALS_PER_DAY = 30 // PD-008
 const MAX_AI_ATTEMPTS = 2 // "AI evaluation failed after retries" (PD-002)
 
 const URL_FETCH_TIMEOUT_MS = 10_000
+// Gemini's API has no client-side timeout of its own — an unbounded fetch()
+// here can hang past the edge function's own execution limit, which kills
+// the isolate before the try/catch around gradeWithAI ever runs and leaves
+// the row stuck at evaluation_status='processing' forever (PD-002 promises
+// every submission ends at 'complete' or 'failed'; that promise only holds
+// if every awaited call inside is itself bounded).
+const GEMINI_TIMEOUT_MS = 25_000
 const MAX_URL_CONTENT_CHARS = 6000
 const MAX_URL_CONTENT_LENGTH_BYTES = 2_000_000 // skip parsing anything advertising >2MB
 
@@ -204,42 +211,55 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
 
 async function callGemini(system: string, userMessage: string): Promise<GeminiGenerateContentResponse> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: system }] },
-      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-      tools: [
-        {
-          function_declarations: [
-            {
-              name: 'submit_grade',
-              description: 'Submit the grading verdict and feedback for this assignment submission.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    enum: ['passed', 'needs_work'],
-                    description: 'Whether the submission meets the rubric well enough to pass.',
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        tools: [
+          {
+            function_declarations: [
+              {
+                name: 'submit_grade',
+                description: 'Submit the grading verdict and feedback for this assignment submission.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    status: {
+                      type: 'string',
+                      enum: ['passed', 'needs_work'],
+                      description: 'Whether the submission meets the rubric well enough to pass.',
+                    },
+                    feedback: {
+                      type: 'string',
+                      description: 'Constructive, specific markdown feedback for the student (2-5 sentences).',
+                    },
                   },
-                  feedback: {
-                    type: 'string',
-                    description: 'Constructive, specific markdown feedback for the student (2-5 sentences).',
-                  },
+                  required: ['status', 'feedback'],
                 },
-                required: ['status', 'feedback'],
               },
-            },
-          ],
+            ],
+          },
+        ],
+        tool_config: {
+          function_calling_config: { mode: 'ANY', allowed_function_names: ['submit_grade'] },
         },
-      ],
-      tool_config: {
-        function_calling_config: { mode: 'ANY', allowed_function_names: ['submit_grade'] },
-      },
-    }),
-  })
+      }),
+    })
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error(`Gemini API call timed out after ${GEMINI_TIMEOUT_MS}ms`)
+    }
+    throw e
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!res.ok) {
     throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)

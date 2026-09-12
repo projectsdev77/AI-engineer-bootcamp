@@ -1,10 +1,22 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Monogram } from '@/components/ui/icons'
 import Avatar from '@/components/ui/Avatar'
 
 export default function AppNav() {
   const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  // Navigate to the landing page ourselves rather than letting
+  // ProtectedRoute's own redirect fire: that redirect attaches the current
+  // page as `state.from` so the next login returns here — useful when a
+  // session expires mid-browse, but wrong for an explicit "log out", which
+  // should always land the next login on the dashboard, not wherever the
+  // user happened to click log out from.
+  async function handleLogout() {
+    await signOut()
+    navigate('/', { replace: true })
+  }
 
   return (
     <header className="border-b-2 border-ink bg-ink text-paper">
@@ -43,13 +55,13 @@ export default function AppNav() {
             </Link>
           )}
           <Link to="/settings" className="flex items-center gap-2 no-underline hover:text-lime">
-            <Avatar name={profile?.full_name} url={profile?.avatar_url} size={26} />
+            <Avatar name={profile?.full_name} size={26} />
             <span className="hidden font-mono text-xs text-paper/80 sm:inline">
               {profile?.full_name?.toLowerCase() ?? 'settings'}
             </span>
           </Link>
           <button
-            onClick={() => void signOut()}
+            onClick={() => void handleLogout()}
             className="rounded-field border-2 border-paper/40 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wide text-paper hover:border-paper"
           >
             log out

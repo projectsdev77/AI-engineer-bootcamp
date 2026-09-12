@@ -6,7 +6,8 @@ import { Button, LinkButton } from '@/components/ui/Button'
 import { Field, Label, FieldHint } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
-import { IllSignup } from '@/components/ui/illustrations'
+import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
+import authIll from '@/assets/illustrations/engineer-coding.png'
 
 export default function SignupPage() {
   const { signUp, signInWithGoogle } = useAuth()
@@ -22,6 +23,11 @@ export default function SignupPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      setError(passwordError)
+      return
+    }
     setSubmitting(true)
     const { error, needsEmailConfirmation } = await signUp(email, password, fullName)
     setSubmitting(false)
@@ -67,7 +73,11 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-paper">
       <PublicNav />
-      <main className="mx-auto flex max-w-[880px] flex-col items-center gap-10 px-4 py-16 lg:flex-row lg:items-stretch lg:justify-center">
+      <main className="mx-auto flex max-w-[900px] flex-col-reverse items-center gap-10 px-4 py-16 lg:flex-row lg:items-stretch lg:justify-center">
+        <div className="ill-frame hidden aspect-[3/4] w-[300px] shrink-0 lg:block">
+          <img src={authIll} alt="" className="ill-photo" />
+        </div>
+
         <div className="w-full max-w-[420px] rounded-panel border-[3px] border-ink bg-surface p-8 shadow-site">
           <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ week one is open ]</p>
           <h1 className="mt-2 font-display text-[38px] font-bold leading-none tracking-[-0.03em] text-ink">Create your account</h1>
@@ -105,7 +115,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <FieldHint>At least 8 characters.</FieldHint>
+              <FieldHint>{PASSWORD_REQUIREMENTS_TEXT}</FieldHint>
             </div>
 
             <Button type="submit" variant="site" disabled={submitting} className="w-full">
@@ -129,10 +139,6 @@ export default function SignupPage() {
               Log in
             </Link>
           </p>
-        </div>
-
-        <div className="ill-frame hidden w-[220px] shrink-0 text-ink lg:block">
-          <IllSignup />
         </div>
       </main>
     </div>

@@ -131,7 +131,10 @@ export default function LandingPage() {
               <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
                 Every assignment gets a written response against the same rubric a mentor would use — not a score, not a checkmark.
               </p>
-              <Link to="/curriculum" className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2">
+              <Link
+                to="/curriculum#example-assignment"
+                className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2"
+              >
                 see an assignment →
               </Link>
             </div>
@@ -143,7 +146,10 @@ export default function LandingPage() {
               <p className="mt-2 max-w-md text-[14.5px] leading-relaxed text-ink/70">
                 Disagree with the AI, or just want a second read? Ask a mentor and a person picks it up from the queue.
               </p>
-              <Link to="/curriculum" className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2">
+              <Link
+                to="/curriculum#how-review-works"
+                className="mt-3 inline-block font-bold text-ink underline decoration-2 underline-offset-2"
+              >
                 how review works →
               </Link>
             </div>

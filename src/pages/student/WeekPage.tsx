@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import AppNav from '@/components/layout/AppNav'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import Card from '@/components/ui/Card'
@@ -78,7 +79,14 @@ function AssignmentRow({ weekId, assignment }: { weekId: string; assignment: Ass
 
 export default function WeekPage() {
   const { weekId } = useParams()
+  const { hash } = useLocation()
   const { week, lessons, assignments, loading, error } = useWeekDetail(weekId)
+
+  useEffect(() => {
+    if (!hash || loading) return
+    const el = document.getElementById(hash.slice(1))
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [hash, loading])
 
   if (loading) return <FullPageSpinner />
 
@@ -110,7 +118,7 @@ export default function WeekPage() {
               </section>
 
               {assignments.length > 0 && (
-                <section className="mt-8">
+                <section id="assignments" className="mt-8 scroll-mt-24">
                   <p className="meta">Assignments</p>
                   <div className="mt-3 space-y-3">
                     {assignments.map((assignment) => (

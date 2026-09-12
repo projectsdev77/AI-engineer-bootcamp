@@ -161,11 +161,17 @@ export default function LessonPage() {
                   <Button
                     type="button"
                     variant="primary"
-                    disabled={!completedAt || !nextLesson}
-                    onClick={() => nextLesson && navigate(`/weeks/${weekId}/lessons/${nextLesson.id}`)}
+                    disabled={!completedAt}
+                    onClick={() => {
+                      if (nextLesson) {
+                        navigate(`/weeks/${weekId}/lessons/${nextLesson.id}`)
+                      } else {
+                        navigate(`/weeks/${weekId}#assignments`)
+                      }
+                    }}
                     className="shrink-0 text-ink"
                   >
-                    {nextLesson ? 'Continue →' : 'Complete'}
+                    {nextLesson ? 'Continue →' : 'Go to assignments →'}
                   </Button>
                 </div>
               )}

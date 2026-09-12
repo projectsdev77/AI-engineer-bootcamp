@@ -10,11 +10,13 @@ import { MessageIcon } from '@/components/ui/icons'
 export default function SubmissionResult({
   submission,
   onFlag,
+  onRefresh,
   isLatest,
   continueHref,
 }: {
   submission: Submission
   onFlag: (reason: string) => void
+  onRefresh?: () => void
   isLatest?: boolean
   continueHref?: string
 }) {
@@ -44,7 +46,14 @@ export default function SubmissionResult({
 
       {(submission.evaluation_status === 'pending' || submission.evaluation_status === 'processing') && (
         <Callout tone="info" className="mt-4">
-          Evaluating — usually under a minute.
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>Evaluating — usually under a minute.</span>
+            {isLatest && onRefresh && (
+              <Button type="button" variant="secondary" size="sm" onClick={onRefresh}>
+                Check again
+              </Button>
+            )}
+          </div>
         </Callout>
       )}
 
