@@ -103,11 +103,11 @@ export default function LandingPage() {
           <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">
             [ why this instead of another list of links ]
           </p>
-          <div className="mt-6 border-y border-hairline">
+          <div className="mt-6 border-y-2 border-ink">
             {WHY_ROWS.map((row, i) => (
               <div
                 key={row.body}
-                className={`grid gap-x-6 gap-y-2 py-7 sm:grid-cols-[64px_1fr_1fr] sm:items-baseline ${i > 0 ? 'border-t border-hairline' : ''}`}
+                className={`grid gap-x-6 gap-y-2 py-7 sm:grid-cols-[64px_1fr_1fr] sm:items-baseline ${i > 0 ? 'border-t-2 border-ink' : ''}`}
               >
                 <span className="font-mono text-[13px] font-bold text-faint">{String(i + 1).padStart(2, '0')}</span>
                 <h3 className="font-display text-2xl font-bold text-ink">
