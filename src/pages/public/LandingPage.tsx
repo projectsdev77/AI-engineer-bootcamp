@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom'
+import communityIll from '@/assets/illustrations/community.jpg'
+import engineerCodingIll from '@/assets/illustrations/engineer-coding.png'
+import humanReviewIll from '@/assets/illustrations/human-review.jpg'
 import PublicNav from '@/components/layout/PublicNav'
 import { LinkButton } from '@/components/ui/Button'
 import { CheckIcon } from '@/components/ui/icons'
-import engineerCodingIll from '@/assets/illustrations/engineer-coding.png'
-import humanReviewIll from '@/assets/illustrations/human-review.jpg'
-import communityIll from '@/assets/illustrations/community.jpg'
+import { Link } from 'react-router-dom'
 
 const WHY_ROWS = [
   {
