@@ -138,12 +138,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // locally on success since the session is invalid the moment the user
   // row is gone.
   async function deleteAccount() {
-    const { data, error } = await supabase.functions.invoke('delete-account')
-    if (error) {
-      return { error: error.message }
-    }
-    if (data?.error) {
-      return { error: data.error as string }
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-account')
+      if (error) {
+        return { error: error.message }
+      }
+      if (data?.error) {
+        return { error: data.error as string }
+      }
+    } catch (e) {
+      // A thrown network/CORS failure here (rather than the invoke's own
+      // {error} field) would otherwise leave the caller's "Deleting…" state
+      // stuck forever with no message — same class of silent-hang bug as
+      // evaluate-submission's invoke.
+      return { error: e instanceof Error ? e.message : "Couldn't reach the delete-account service." }
     }
     await supabase.auth.signOut()
     return { error: null }
