@@ -2,13 +2,68 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { currentWeek, isWeekComplete, useProgressOverview, type WeekProgress } from '@/hooks/useProgressOverview'
 import { useMyCertificate } from '@/hooks/useMyCertificate'
+import { useWeeklyHours } from '@/hooks/useWeeklyHours'
 import AppNav from '@/components/layout/AppNav'
 import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill from '@/components/ui/StatusPill'
+import Callout from '@/components/ui/Callout'
 import { LinkButton } from '@/components/ui/Button'
 import { StarIcon, LockIcon } from '@/components/ui/icons'
 import { IllComplete } from '@/components/ui/illustrations'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
+
+function formatHours(hours: number) {
+  return Number.isInteger(hours) ? `${hours}` : hours.toFixed(1)
+}
+
+function WeeklyHoursCard() {
+  const { data } = useWeeklyHours()
+  if (!data) return null
+
+  if (data.target_hours == null) {
+    return (
+      <div className="card">
+        <p className="meta">This week</p>
+        <p className="mt-2 text-[14px] leading-relaxed text-muted">
+          Set a weekly hours target in{' '}
+          <Link to="/settings" className="font-bold text-blue-700">
+            Settings
+          </Link>{' '}
+          to track how much time you're putting in each week.
+        </p>
+      </div>
+    )
+  }
+
+  const loggedHours = data.logged_minutes / 60
+  const targetHours = data.target_hours
+  const percent = targetHours > 0 ? Math.min(100, Math.round((loggedHours / targetHours) * 100)) : 0
+  const remaining = Math.max(0, targetHours - loggedHours)
+  const goalReached = loggedHours >= targetHours
+
+  return (
+    <div className="card">
+      <p className="meta">This week</p>
+      <p className="mt-2 font-display text-3xl font-bold text-ink">
+        {formatHours(loggedHours)}
+        <span className="text-lg text-muted"> / {formatHours(targetHours)} hrs</span>
+      </p>
+      <div className="mt-3">
+        <ProgressBar percent={percent} tone={goalReached ? 'lime' : 'ink'} />
+      </div>
+      {goalReached ? (
+        <Callout tone="pass" className="mt-4">
+          🎉 You hit your weekly goal — nice work.
+        </Callout>
+      ) : (
+        <p className="mt-3 text-[13.5px] text-muted">{formatHours(remaining)} hrs left to reach your target.</p>
+      )}
+      <p className="mt-3 text-[11px] text-faint">
+        Based on time estimates for completed resources — approximate, not a stopwatch.
+      </p>
+    </div>
+  )
+}
 
 function WeekRow({ week, isCurrent }: { week: WeekProgress; isCurrent: boolean }) {
   const totalUnits = week.lessons_total + week.assignments_total
@@ -146,6 +201,8 @@ export default function DashboardPage() {
                 </LinkButton>
               </div>
             )}
+
+            <WeeklyHoursCard />
 
             {overall && (
               <div className="card">

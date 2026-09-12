@@ -81,6 +81,7 @@ function ProfileForm() {
               rows={3}
               placeholder="e.g. 5 years as a backend engineer, new to ML"
             />
+            <FieldHint>Shared with your mentor so they can tailor feedback to your experience.</FieldHint>
           </div>
           <div>
             <Label htmlFor="weekly_hours_target">Weekly hours target</Label>
@@ -92,6 +93,7 @@ function ProfileForm() {
               onChange={(e) => setForm({ ...form, weekly_hours_target: e.target.value })}
               className="w-28"
             />
+            <FieldHint>Tracked on your dashboard against time you log completing resources.</FieldHint>
           </div>
         </>
       )}

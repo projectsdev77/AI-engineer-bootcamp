@@ -9,7 +9,36 @@ import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
 import MessageThread from '@/components/messages/MessageThread'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
+import { useWeeklyHours } from '@/hooks/useWeeklyHours'
 import type { Submission } from '@/types/database'
+
+interface StudentProfile {
+  full_name: string | null
+  background: string | null
+  weekly_hours_target: number | null
+}
+
+function useStudentProfile(studentId: string | undefined) {
+  const [profile, setProfile] = useState<StudentProfile | null>(null)
+
+  useEffect(() => {
+    if (!studentId) return
+    let active = true
+    void supabase
+      .from('profiles')
+      .select('full_name, background, weekly_hours_target')
+      .eq('id', studentId)
+      .single()
+      .then(({ data }) => {
+        if (active) setProfile(data as StudentProfile | null)
+      })
+    return () => {
+      active = false
+    }
+  }, [studentId])
+
+  return profile
+}
 
 interface RecentSubmission extends Submission {
   assignmentTitle: string
@@ -64,6 +93,8 @@ export default function StudentDetailPage() {
   const { studentId } = useParams()
   const { data, loading: progressLoading, error } = useProgressOverview(studentId)
   const { submissions, loading: submissionsLoading } = useRecentSubmissions(studentId)
+  const { data: weeklyHours } = useWeeklyHours(studentId)
+  const studentProfile = useStudentProfile(studentId)
 
   if (progressLoading) return <FullPageSpinner />
 
@@ -76,9 +107,26 @@ export default function StudentDetailPage() {
   return (
     <div className="min-h-screen bg-paper">
       <AppNav />
-      <Breadcrumb items={[{ label: 'your students', to: '/mentor' }, { label: 'student' }]} />
+      <Breadcrumb
+        items={[{ label: 'your students', to: '/mentor' }, { label: studentProfile?.full_name?.toLowerCase() ?? 'student' }]}
+      />
       <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
         {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
+
+        {studentProfile && (studentProfile.background || studentProfile.weekly_hours_target != null) && (
+          <Card className="mb-6">
+            <p className="meta">About this student</p>
+            {studentProfile.background && (
+              <p className="mt-2 text-[14.5px] leading-relaxed text-ink">{studentProfile.background}</p>
+            )}
+            {studentProfile.weekly_hours_target != null && (
+              <p className="mt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-muted">
+                Aiming for {studentProfile.weekly_hours_target} hrs/week
+                {weeklyHours && ` · ${(weeklyHours.logged_minutes / 60).toFixed(1)} logged this week`}
+              </p>
+            )}
+          </Card>
+        )}
 
         {overall && (
           <Card>
