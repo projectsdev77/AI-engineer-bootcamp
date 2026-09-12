@@ -95,8 +95,8 @@ export function ChevronRightIcon(props: IconProps) {
 export function Monogram({ size = 26, className = '' }: { size?: number; className?: string }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[8px] bg-lime font-display font-bold text-ink ${className}`}
-      style={{ width: size, height: size, fontSize: size * 0.5, lineHeight: 1 }}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[10px] border-2 border-ink bg-lime font-display font-bold text-ink ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.42, lineHeight: 1 }}
     >
       AI
     </span>

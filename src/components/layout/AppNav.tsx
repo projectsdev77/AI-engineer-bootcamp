@@ -22,7 +22,7 @@ export default function AppNav() {
     <header className="border-b-2 border-ink bg-ink text-paper">
       <nav className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
         <Link to="/dashboard" className="flex items-center gap-3 no-underline">
-          <Monogram />
+          <Monogram size={32} />
           <span className="hidden font-mono text-[13px] font-bold uppercase tracking-[0.08em] text-paper sm:inline">
             Become an AI Engineer
           </span>

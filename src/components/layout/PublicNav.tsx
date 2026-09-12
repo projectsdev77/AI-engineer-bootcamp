@@ -6,8 +6,8 @@ export default function PublicNav() {
     <header className="border-b-[3px] border-ink bg-paper">
       <nav className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link to="/" className="flex items-center gap-3 no-underline">
-          <Monogram size={34} />
-          <span className="font-mono text-[13px] font-bold uppercase leading-tight tracking-[0.06em] text-ink">
+          <Monogram size={46} />
+          <span className="font-mono text-[14px] font-bold uppercase leading-tight tracking-[0.06em] text-ink">
             Become an
             <br />
             AI Engineer
