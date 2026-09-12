@@ -7,7 +7,7 @@ import { Field, Label, FieldHint } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
 import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
-import authIll from '@/assets/illustrations/engineer-coding.png'
+import authIll from '@/assets/illustrations/engineer-coding.jpg'
 
 export default function SignupPage() {
   const { signUp, signInWithGoogle } = useAuth()

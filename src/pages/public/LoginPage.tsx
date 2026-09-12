@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Label } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
-import authIll from '@/assets/illustrations/engineer-coding.png'
+import authIll from '@/assets/illustrations/engineer-coding.jpg'
 
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()

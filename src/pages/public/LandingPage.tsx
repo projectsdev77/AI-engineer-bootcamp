@@ -1,5 +1,5 @@
 import communityIll from '@/assets/illustrations/community.jpg'
-import engineerCodingIll from '@/assets/illustrations/engineer-coding.png'
+import engineerCodingIll from '@/assets/illustrations/engineer-coding.jpg'
 import humanReviewIll from '@/assets/illustrations/human-review.jpg'
 import PublicNav from '@/components/layout/PublicNav'
 import { LinkButton } from '@/components/ui/Button'
