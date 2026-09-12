@@ -155,7 +155,7 @@ export default function LandingPage() {
           <h2 className="font-display text-4xl font-bold text-ink">Is this for you?</h2>
           <p className="mt-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ three honest tests ]</p>
           <div className="mt-6 grid items-center gap-10 lg:grid-cols-[1.3fr_1fr]">
-            <div className="ill-frame mx-auto aspect-[4/3] max-w-[640px] lg:mx-0">
+            <div className="mx-auto aspect-[4/3] max-w-[640px] overflow-hidden rounded-panel bg-paper lg:mx-0">
               <img src={communityIll} alt="" className="ill-photo" />
             </div>
             <ul className="divide-y-2 divide-ink border-y-2 border-ink">
