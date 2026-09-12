@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Label } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon, GoogleIcon } from '@/components/ui/icons'
-import authIll from '@/assets/illustrations/auth-hero.jpg'
+import authIll from '@/assets/illustrations/auth-hero.png'
 
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()
@@ -118,7 +118,6 @@ export default function LoginPage() {
             src={authIll}
             alt="Learners studying on phones and laptops"
             className="block h-auto w-full max-w-[620px]"
-            style={{ mixBlendMode: 'multiply' }}
           />
         </section>
       </main>

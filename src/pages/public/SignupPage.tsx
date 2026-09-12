@@ -7,7 +7,7 @@ import { Field, Label, FieldHint } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon, GoogleIcon } from '@/components/ui/icons'
 import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
-import authIll from '@/assets/illustrations/auth-hero.jpg'
+import authIll from '@/assets/illustrations/auth-hero.png'
 
 export default function SignupPage() {
   const { signUp, signInWithGoogle } = useAuth()
@@ -162,7 +162,6 @@ export default function SignupPage() {
             src={authIll}
             alt="Learners studying on phones and laptops"
             className="block h-auto w-full max-w-[620px]"
-            style={{ mixBlendMode: 'multiply' }}
           />
         </section>
       </main>
