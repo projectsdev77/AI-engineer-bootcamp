@@ -124,8 +124,12 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
         .select()
         .single()
       if (error) throw error
-      await invokeEvaluation(data.id)
+      // Show the new "Attempt N — evaluating" card immediately — don't
+      // wait for grading to finish first. invokeEvaluation runs in the
+      // background; the effect above picks up the pending row this
+      // refresh() just loaded and polls it to completion on its own.
       await refresh()
+      void invokeEvaluation(data.id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Submission failed')
     } finally {
@@ -160,8 +164,8 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
         if (answersError) throw answersError
       }
 
-      await invokeEvaluation(submission.id)
       await refresh()
+      void invokeEvaluation(submission.id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Submission failed')
     } finally {
@@ -171,22 +175,27 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
 
   async function invokeEvaluation(submissionId: string) {
     // Grading (quiz) and AI feedback (text/url) both happen server-side
-    // with the service role, per section 7 — the client only kicks it off.
-    // The function call itself blocks until grading finishes, but a slow
-    // connection, a cold start, or a dropped request can make this call
-    // fail or time out client-side even when the function keeps running
-    // (and eventually finishes) on the server — so don't treat a single
-    // invoke as the only chance to see the result: fall through to polling
-    // either way.
+    // with the service role, per section 7 — the client only kicks off the
+    // function call and never awaits its result on the submit path (the
+    // polling effect above is what actually picks up the graded row). A
+    // failure here — the function isn't deployed, secrets aren't set,
+    // Gemini rejected the key — is surfaced to `error` so it isn't just a
+    // silently-stuck "Evaluating" card with a console.error only the
+    // developer would ever see.
     try {
       const { error } = await supabase.functions.invoke('evaluate-submission', {
         body: { submissionId },
       })
-      if (error) console.error('evaluate-submission invoke failed', error)
+      if (error) {
+        console.error('evaluate-submission invoke failed', error)
+        setError(
+          `Couldn't reach the grading service (${error.message}). Your submission was saved — a mentor will review it if grading doesn't complete.`,
+        )
+      }
     } catch (e) {
       console.error('evaluate-submission invoke threw', e)
+      setError("Couldn't reach the grading service. Your submission was saved — a mentor will review it if grading doesn't complete.")
     }
-    await pollUntilGraded(submissionId)
   }
 
   // Polls the submission row until it leaves 'pending'/'processing', instead
