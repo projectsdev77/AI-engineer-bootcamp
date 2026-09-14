@@ -103,13 +103,16 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-  const { data: resources, error } = await supabase.from('resources').select('id, url, title, lesson_id, is_broken')
+  const { data: allResources, error } = await supabase
+    .from('resources')
+    .select('id, url, title, lesson_id, is_broken, skip_health_check')
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
   }
+  const resources = (allResources ?? []).filter((r) => !r.skip_health_check)
 
   let checked = 0
   let brokenCount = 0

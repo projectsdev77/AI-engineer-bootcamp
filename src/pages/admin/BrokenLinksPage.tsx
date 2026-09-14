@@ -67,6 +67,11 @@ export default function BrokenLinksPage() {
     await refresh()
   }
 
+  async function alwaysAllow(resourceId: string) {
+    await supabase.from('resources').update({ is_broken: false, skip_health_check: true }).eq('id', resourceId)
+    await refresh()
+  }
+
   async function runCheck() {
     setChecking(true)
     setCheckError(null)
@@ -105,7 +110,11 @@ export default function BrokenLinksPage() {
         </div>
         <p className="mt-2 text-[14.5px] text-muted">
           Flagged by the link checker (HTTP failures only — a link that resolves but points to the wrong page won't
-          be caught). Students are never blocked by these (PD-009) — this is admin-only visibility.
+          be caught, and a few sites block automated checks entirely even when they work fine for a real visitor).
+          Students are never blocked by these (PD-009) — this is admin-only visibility.{' '}
+          <span className="font-bold text-ink">Mark fixed</span> clears it until the next check; if a link keeps
+          coming back broken even though it works when you open it,{' '}
+          <span className="font-bold text-ink">always allow</span> excludes it from future checks for good.
         </p>
         {checkError && (
           <Callout tone="fail" className="mt-3">
@@ -148,6 +157,13 @@ export default function BrokenLinksPage() {
                         </Link>
                         <button onClick={() => void dismiss(r.id)} className="font-mono text-[11.5px] font-bold uppercase text-muted hover:text-ink">
                           mark fixed
+                        </button>
+                        <button
+                          onClick={() => void alwaysAllow(r.id)}
+                          title="I've checked this link myself and it works — stop flagging it, even if automated checks keep failing it"
+                          className="font-mono text-[11.5px] font-bold uppercase text-muted hover:text-ink"
+                        >
+                          always allow
                         </button>
                       </div>
                     </TD>

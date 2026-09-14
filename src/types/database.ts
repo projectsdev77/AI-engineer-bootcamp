@@ -83,6 +83,7 @@ export interface Resource {
   last_checked_at: string | null
   last_status_code: number | null
   is_broken: boolean
+  skip_health_check: boolean
   created_at: string
 }
 
