@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import AppNav from '@/components/layout/AppNav'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useMentorStudents } from '@/hooks/useMentorStudents'
+import { useExceptionQueue } from '@/hooks/useExceptionQueue'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 
 function timeAgo(iso: string | null): string {
@@ -14,6 +15,7 @@ function timeAgo(iso: string | null): string {
 
 export default function MentorDashboardPage() {
   const { students, loading, error } = useMentorStudents()
+  const { open: openQueueItems } = useExceptionQueue()
 
   if (loading) return <FullPageSpinner />
 
@@ -28,8 +30,12 @@ export default function MentorDashboardPage() {
             </p>
             <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Your students</h1>
           </div>
-          <Link to="/mentor/queue" className="font-mono text-xs font-bold uppercase tracking-wide text-blue-700">
+          <Link
+            to="/mentor/queue"
+            className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide text-blue-700"
+          >
             exception queue →
+            {openQueueItems.length > 0 && <span className="pill pill-warn">{openQueueItems.length} open</span>}
           </Link>
         </div>
 

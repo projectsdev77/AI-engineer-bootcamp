@@ -227,6 +227,9 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
       setError(error.message)
       return
     }
+    // Fire-and-forget: same pattern as send-welcome-email/notify-message —
+    // a failed notification should never block the flag itself succeeding.
+    supabase.functions.invoke('notify-flagged-submission', { body: { submissionId: latest.id } }).catch(() => {})
     await refresh()
   }
 
