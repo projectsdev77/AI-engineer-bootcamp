@@ -224,4 +224,14 @@
   .certificate-print, .certificate-print * { visibility: visible; }
   .certificate-print { position: absolute; top: 0; left: 0; width: 100%; }
   .certificate-print .shadow-app { box-shadow: none; }
+  /* Chromium's print dialog omits background colors/images by default
+   * (its own "Background graphics" checkbox, off by default) — without
+   * forcing this, the certificate's dark header bar, lime accent
+   * underline and monogram fill all print as blank/white, which doesn't
+   * match what's on screen. print-color-adjust forces them regardless
+   * of that checkbox. */
+  .certificate-print, .certificate-print * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

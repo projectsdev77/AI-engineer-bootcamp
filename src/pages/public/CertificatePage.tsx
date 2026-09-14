@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
+import AppNav from '@/components/layout/AppNav'
 import CertificateCard from '@/components/certificate/CertificateCard'
 import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
@@ -18,6 +20,7 @@ interface CertificateSnapshot {
 
 export default function CertificatePage() {
   const { code } = useParams()
+  const { user } = useAuth()
   const [snapshot, setSnapshot] = useState<CertificateSnapshot | null>(null)
   const [issuedAt, setIssuedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -52,7 +55,12 @@ export default function CertificatePage() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <PublicNav />
+      {/* Reached both from the app itself (a signed-in student's "View
+          certificate" link) and from outside it (anyone verifying a shared
+          link) — showing PublicNav's "log in"/"get started" to an already
+          signed-in visitor read as if the click had logged them out, even
+          though the session itself was never touched. */}
+      {user ? <AppNav /> : <PublicNav />}
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         {loading && (
           <p className="text-center font-mono text-xs font-bold uppercase tracking-wide text-muted">loading…</p>
