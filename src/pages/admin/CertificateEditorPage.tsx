@@ -133,20 +133,16 @@ export default function CertificateEditorPage() {
 
             <div>
               <p className="meta mb-3">Live preview (sample data)</p>
-              <div className="flex items-center justify-center rounded-panel border-2 border-ink bg-stone p-8">
-                <div style={{ transform: 'scale(0.6)', transformOrigin: 'top center' }}>
-                  <CertificateCard
-                    fields={{
-                      title_text: form.title_text,
-                      body_text: substitutePreview(form.body_text),
-                      signature_name: form.signature_name,
-                      signature_title: form.signature_title,
-                      logo_url: form.logo_url,
-                      accent_color: form.accent_color,
-                    }}
-                  />
-                </div>
-              </div>
+              <CertificateCard
+                fields={{
+                  title_text: form.title_text,
+                  body_text: substitutePreview(form.body_text),
+                  signature_name: form.signature_name,
+                  signature_title: form.signature_title,
+                  logo_url: form.logo_url,
+                  accent_color: form.accent_color,
+                }}
+              />
             </div>
           </div>
         )}
