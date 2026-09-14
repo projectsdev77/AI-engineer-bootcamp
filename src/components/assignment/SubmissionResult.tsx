@@ -65,7 +65,7 @@ export default function SubmissionResult({
       )}
 
       {submission.ai_feedback && (
-        <Callout tone="info" heading="AI feedback" icon={<MessageIcon className="h-3.5 w-3.5" />} className="mt-4">
+        <Callout tone="info" heading="Feedback" icon={<MessageIcon className="h-3.5 w-3.5" />} className="mt-4">
           <div className="prose prose-sm max-w-none">
             <ReactMarkdown>{submission.ai_feedback}</ReactMarkdown>
           </div>
