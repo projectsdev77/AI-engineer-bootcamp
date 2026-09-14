@@ -22,6 +22,7 @@ import {
   type GeminiGenerateContentResponse,
   type UrlFetchResult,
 } from './grading.ts'
+import { corsHeaders, handlePreflight } from '../_shared/cors.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -45,11 +46,14 @@ const MAX_URL_CONTENT_LENGTH_BYTES = 2_000_000 // skip parsing anything advertis
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   })
 }
 
 Deno.serve(async (req) => {
+  const preflight = handlePreflight(req)
+  if (preflight) return preflight
+
   let submissionId: string | undefined
   try {
     ;({ submissionId } = await req.json())

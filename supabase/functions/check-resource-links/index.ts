@@ -17,6 +17,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { chunk, classify } from './health.ts'
 import { escapeHtml, sendEmail } from '../_shared/resend.ts'
+import { corsHeaders, handlePreflight } from '../_shared/cors.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -82,12 +83,18 @@ async function notifyAdmins(supabase: ReturnType<typeof createClient>, newlyBrok
   }
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  const preflight = handlePreflight(req)
+  if (preflight) return preflight
+
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
   const { data: resources, error } = await supabase.from('resources').select('id, url, title, lesson_id, is_broken')
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
   }
 
   let checked = 0
@@ -153,6 +160,6 @@ Deno.serve(async () => {
   }
 
   return new Response(JSON.stringify({ ok: true, checked, brokenCount, newlyBroken: newlyBrokenIds.length }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   })
 })
