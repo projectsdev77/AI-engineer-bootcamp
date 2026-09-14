@@ -3,6 +3,9 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 
+/** Dispatched by useMessageThread right after it marks messages read, so the badge can clear immediately. */
+export const MESSAGES_READ_EVENT = 'messages-read'
+
 /**
  * Count of messages waiting on the current user, from the other side of
  * whichever thread(s) they can see. Works unmodified for either role: RLS's
@@ -10,9 +13,12 @@ import { useAuth } from '@/context/AuthContext'
  * a mentor's assigned students' threads — so "sender isn't me, unread" is
  * exactly the right filter regardless of which one you are.
  *
- * Re-checks on every route change rather than polling, since visiting a
- * thread (useMessageThread) is what marks messages read — this just needs
- * to notice that happened after the fact, not stay live second-to-second.
+ * Re-checks on route change (catches visiting a thread on a fresh
+ * navigation) and on MESSAGES_READ_EVENT (catches reading a thread that
+ * was already open, e.g. new messages arriving via useMessageThread's own
+ * refresh) — without the latter the badge would sit stale until whatever
+ * navigation happened to come next, instead of clearing right away like a
+ * normal messaging app.
  */
 export function useUnreadMessages() {
   const { user } = useAuth()
@@ -34,11 +40,14 @@ export function useUnreadMessages() {
 
   useEffect(() => {
     void refresh()
-    // Re-check on navigation (not just when `refresh` itself changes) so
-    // the badge clears shortly after visiting the thread that just marked
-    // its messages read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refresh, location.pathname])
+
+  useEffect(() => {
+    const handler = () => void refresh()
+    window.addEventListener(MESSAGES_READ_EVENT, handler)
+    return () => window.removeEventListener(MESSAGES_READ_EVENT, handler)
+  }, [refresh])
 
   return count
 }

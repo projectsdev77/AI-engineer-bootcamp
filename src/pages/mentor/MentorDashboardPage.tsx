@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -6,6 +6,7 @@ import AppNav from '@/components/layout/AppNav'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useMentorStudents } from '@/hooks/useMentorStudents'
 import { useExceptionQueue } from '@/hooks/useExceptionQueue'
+import { MESSAGES_READ_EVENT } from '@/hooks/useUnreadMessages'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 
 function timeAgo(iso: string | null): string {
@@ -21,17 +22,28 @@ function useUnreadByStudent() {
   const { user } = useAuth()
   const [counts, setCounts] = useState<Map<string, number>>(new Map())
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     if (!user) return
-    ;(async () => {
-      const { data } = await supabase.from('messages').select('student_id').neq('sender_id', user.id).is('read_at', null)
-      const map = new Map<string, number>()
-      for (const row of data ?? []) {
-        map.set(row.student_id, (map.get(row.student_id) ?? 0) + 1)
-      }
-      setCounts(map)
-    })()
+    const { data } = await supabase.from('messages').select('student_id').neq('sender_id', user.id).is('read_at', null)
+    const map = new Map<string, number>()
+    for (const row of data ?? []) {
+      map.set(row.student_id, (map.get(row.student_id) ?? 0) + 1)
+    }
+    setCounts(map)
   }, [user])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  // Catches reading a student's thread without leaving this page mounted
+  // (e.g. a future embedded thread view) — clears the badge right away
+  // instead of only on the next navigation back to this page.
+  useEffect(() => {
+    const handler = () => void refresh()
+    window.addEventListener(MESSAGES_READ_EVENT, handler)
+    return () => window.removeEventListener(MESSAGES_READ_EVENT, handler)
+  }, [refresh])
 
   return counts
 }
