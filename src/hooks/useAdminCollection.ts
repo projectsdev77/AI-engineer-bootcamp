@@ -31,7 +31,12 @@ export function useAdminCollection<T extends Positioned>(
       setLoading(false)
       return
     }
-    setLoading(true)
+    // Deliberately not setLoading(true) here: refresh() also runs after every
+    // create/update/remove/reorder, and flipping loading back to true on each
+    // of those would unmount the whole list back to a loading state on every
+    // click. Only the very first fetch (loading's initial value) should show
+    // that state — after that, keep showing the old data until the new data
+    // is ready, then swap in place.
     const { data, error } = await supabase
       .from(table)
       .select('*')
@@ -77,11 +82,29 @@ export function useAdminCollection<T extends Positioned>(
   }
 
   async function remove(id: string): Promise<boolean> {
+    const removed = items.find((i) => i.id === id)
     const { error } = await supabase.from(table).delete().eq('id', id)
     if (error) {
       setError(error.message)
       return false
     }
+
+    // Close the gap the deleted row left behind, so position stays a dense
+    // 1..N sequence — otherwise a deleted slot (e.g. "week 4") is gone for
+    // good, since new rows are always appended after the current max.
+    // Shifting lowest-position-first is always collision-free: each target
+    // slot was just vacated by the delete itself or by the previous step.
+    if (removed) {
+      const toShift = items.filter((i) => i.id !== id && i.position > removed.position).sort((a, b) => a.position - b.position)
+      for (const item of toShift) {
+        const { error: shiftError } = await supabase.from(table).update({ position: item.position - 1 }).eq('id', item.id)
+        if (shiftError) {
+          setError(shiftError.message)
+          break
+        }
+      }
+    }
+
     await refresh()
     return true
   }
