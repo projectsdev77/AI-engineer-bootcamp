@@ -27,7 +27,7 @@ import { corsHeaders, handlePreflight } from '../_shared/cors.ts'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
-const GEMINI_MODEL = 'gemini-2.5-flash'
+const GEMINI_MODEL = 'gemini-3.6-flash'
 
 const MAX_AI_EVALS_PER_DAY = 30 // PD-008
 const MAX_AI_ATTEMPTS = 2 // "AI evaluation failed after retries" (PD-002)
