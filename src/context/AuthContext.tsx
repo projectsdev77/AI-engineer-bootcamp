@@ -35,6 +35,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(data as Profile | null)
   }
 
+  // profiles.last_active_at otherwise never gets written anywhere — the
+  // mentor dashboard's "last activity" column and send-reengagement-emails'
+  // inactivity filter both read it, but a column nothing ever updates stays
+  // null forever (and .lt('last_active_at', ...) never matches a null row,
+  // so that edge function has never actually selected anyone). Touching it
+  // once per app load is a simple, good-enough "was here recently" signal
+  // without writing on every token refresh while a tab sits open.
+  function touchLastActive(userId: string) {
+    supabase
+      .from('profiles')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('id', userId)
+      .then(undefined, () => {})
+  }
+
   useEffect(() => {
     let active = true
 
@@ -43,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session)
       if (data.session?.user) {
         await loadProfile(data.session.user.id)
+        touchLastActive(data.session.user.id)
       }
       setLoading(false)
     })
