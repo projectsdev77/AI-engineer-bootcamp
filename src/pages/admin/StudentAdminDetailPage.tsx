@@ -25,23 +25,6 @@ function useMentorOptions() {
   return mentors
 }
 
-function useAccountStatus(studentId: string | undefined) {
-  const [status, setStatus] = useState<'active' | 'suspended' | null>(null)
-
-  async function refresh() {
-    if (!studentId) return
-    const { data } = await supabase.from('profiles').select('status').eq('id', studentId).single()
-    setStatus((data?.status as 'active' | 'suspended' | undefined) ?? null)
-  }
-
-  useEffect(() => {
-    void refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentId])
-
-  return { status, refresh }
-}
-
 function useCurrentMentor(studentId: string | undefined) {
   const [mentorId, setMentorId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -74,9 +57,6 @@ export default function StudentAdminDetailPage() {
   const mentors = useMentorOptions()
   const { mentorId, refresh: refreshMentor } = useCurrentMentor(studentId)
   const [reassigning, setReassigning] = useState(false)
-  const { status: accountStatus, refresh: refreshAccountStatus } = useAccountStatus(studentId)
-  const [settingStatus, setSettingStatus] = useState(false)
-  const [statusError, setStatusError] = useState<string | null>(null)
 
   const [unlockWeekId, setUnlockWeekId] = useState('')
   const [unlockReason, setUnlockReason] = useState('')
@@ -103,19 +83,6 @@ export default function StudentAdminDetailPage() {
     }
     setPaymentNote('')
     await refreshProgress()
-  }
-
-  async function setAccountStatus(next: 'active' | 'suspended') {
-    if (!studentId) return
-    setSettingStatus(true)
-    setStatusError(null)
-    const { error } = await supabase.from('profiles').update({ status: next }).eq('id', studentId)
-    setSettingStatus(false)
-    if (error) {
-      setStatusError(error.message)
-      return
-    }
-    await refreshAccountStatus()
   }
 
   async function reassignMentor(newMentorId: string) {
@@ -191,32 +158,6 @@ export default function StudentAdminDetailPage() {
                 </option>
               ))}
             </SelectField>
-          </Card>
-
-          <Card>
-            <div className="flex items-center justify-between">
-              <span className="meta">Account</span>
-              {accountStatus === 'suspended' ? (
-                <StatusPill variant="fail">suspended</StatusPill>
-              ) : (
-                <StatusPill variant="pass">active</StatusPill>
-              )}
-            </div>
-            <p className="mt-2 text-[13.5px] text-muted">
-              A suspended student is signed out immediately and can't log back in until reactivated.
-            </p>
-            <div className="mt-4">
-              {statusError && <p className="mb-3 text-sm font-bold text-fail-ink">{statusError}</p>}
-              {accountStatus === 'suspended' ? (
-                <Button type="button" variant="primary" onClick={() => void setAccountStatus('active')} disabled={settingStatus}>
-                  {settingStatus ? 'Saving…' : 'Reactivate account'}
-                </Button>
-              ) : (
-                <Button type="button" variant="secondary" onClick={() => void setAccountStatus('suspended')} disabled={settingStatus} className="border-fail text-fail-ink">
-                  {settingStatus ? 'Saving…' : 'Suspend account'}
-                </Button>
-              )}
-            </div>
           </Card>
 
           <Card>

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 
@@ -10,26 +9,12 @@ export function FullPageSpinner() {
   )
 }
 
-/**
- * Requires a signed-in user; otherwise redirects to /login. Login always
- * lands on /dashboard — it never resumes the attempted path.
- *
- * Also the sole enforcement point for a suspended account signed in via
- * Google (which skips AuthContext.signIn's own check) or one that gets
- * suspended while already signed in elsewhere — it signs them out and
- * bounces to /login with a message.
- */
+/** Requires a signed-in user; otherwise redirects to /login. Login always lands on /dashboard — it never resumes the attempted path. */
 export function RequireAuth() {
-  const { session, profile, loading, signOut } = useAuth()
-  const suspended = profile?.status === 'suspended'
-
-  useEffect(() => {
-    if (suspended) void signOut()
-  }, [suspended, signOut])
+  const { session, loading } = useAuth()
 
   if (loading) return <FullPageSpinner />
   if (!session) return <Navigate to="/login" replace />
-  if (suspended) return <Navigate to="/login?suspended=1" replace />
   return <Outlet />
 }
 

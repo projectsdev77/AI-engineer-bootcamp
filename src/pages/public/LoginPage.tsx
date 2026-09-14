@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
 import { Button } from '@/components/ui/Button'
@@ -11,13 +11,10 @@ import authIll from '@/assets/illustrations/auth-hero.png'
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(
-    searchParams.get('suspended') ? 'This account has been suspended. Contact support if you think this is a mistake.' : null,
-  )
+  const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
