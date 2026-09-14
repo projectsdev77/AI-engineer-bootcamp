@@ -4,6 +4,7 @@ const TABS = [
   { to: '/admin', label: 'overview', end: true },
   { to: '/admin/curriculum', label: 'curriculum' },
   { to: '/admin/students', label: 'students' },
+  { to: '/admin/mentors', label: 'mentors' },
   { to: '/admin/broken-links', label: 'broken links' },
   { to: '/admin/certificate', label: 'certificate' },
 ] as const

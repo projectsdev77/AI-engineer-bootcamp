@@ -18,6 +18,7 @@ import WeekEditorPage from '@/pages/admin/WeekEditorPage'
 import LessonEditorPage from '@/pages/admin/LessonEditorPage'
 import AssignmentEditorPage from '@/pages/admin/AssignmentEditorPage'
 import StudentsListPage from '@/pages/admin/StudentsListPage'
+import MentorsListPage from '@/pages/admin/MentorsListPage'
 import StudentAdminDetailPage from '@/pages/admin/StudentAdminDetailPage'
 import BrokenLinksPage from '@/pages/admin/BrokenLinksPage'
 import CertificateEditorPage from '@/pages/admin/CertificateEditorPage'
@@ -60,6 +61,7 @@ function App() {
               <Route path="/admin/curriculum/lessons/:lessonId" element={<LessonEditorPage />} />
               <Route path="/admin/curriculum/assignments/:assignmentId" element={<AssignmentEditorPage />} />
               <Route path="/admin/students" element={<StudentsListPage />} />
+              <Route path="/admin/mentors" element={<MentorsListPage />} />
               <Route path="/admin/students/:studentId" element={<StudentAdminDetailPage />} />
               <Route path="/admin/broken-links" element={<BrokenLinksPage />} />
               <Route path="/admin/certificate" element={<CertificateEditorPage />} />
