@@ -109,11 +109,24 @@ export default function StudentAdminDetailPage() {
     })
     setUnlocking(false)
     if (error) {
-      setUnlockError(error.message)
+      // 23505 = unique_violation on week_unlocks(user_id, week_id) — the
+      // week list below is only as fresh as the last refreshProgress(),
+      // so this can still happen (two rapid clicks, a second admin tab,
+      // the system's own auto-unlock landing in between). Either way the
+      // week ends up unlocked, so treat it like success once refreshed.
+      if (error.code === '23505') {
+        setUnlockError(null)
+        setUnlockWeekId('')
+        setUnlockReason('')
+      } else {
+        setUnlockError(error.message)
+      }
+      await refreshProgress()
       return
     }
     setUnlockWeekId('')
     setUnlockReason('')
+    await refreshProgress()
   }
 
   if (progressLoading) return <FullPageSpinner />
