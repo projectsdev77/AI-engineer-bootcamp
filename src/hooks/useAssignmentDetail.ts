@@ -191,7 +191,7 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
     // silently-stuck "Evaluating" card with a console.error only the
     // developer would ever see.
     try {
-      const { error } = await supabase.functions.invoke('evaluate-submission', {
+      const { data, error } = await supabase.functions.invoke('evaluate-submission', {
         body: { submissionId },
       })
       if (error) {
@@ -199,6 +199,16 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
         setError(
           `Couldn't reach the grading service (${await functionErrorMessage(error)}). Your submission was saved — a mentor will review it if grading doesn't complete.`,
         )
+      } else if (data?.ok === false) {
+        // The function itself ran and grading failed internally (bad
+        // model name, Gemini rejected the request, ...) — it deliberately
+        // responds 200 in that case (the failure is recorded on the
+        // submission row, not a transport error), so `error` above is
+        // never set for this path. evaluation_status already flips to
+        // 'failed' and SubmissionResult shows its own friendly message
+        // once polling catches up; this just surfaces the real reason
+        // immediately instead of making the student wait for that poll.
+        console.error('evaluate-submission ran but grading failed', data.error)
       }
     } catch (e) {
       console.error('evaluate-submission invoke threw', e)
