@@ -10,7 +10,8 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import Avatar from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Field, Label, TextAreaField, FieldHint } from '@/components/ui/Field'
-import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
+import PasswordRequirementsList from '@/components/ui/PasswordRequirementsList'
+import { validatePassword } from '@/lib/passwordPolicy'
 
 function ProfileForm() {
   const { user, profile, refreshProfile } = useAuth()
@@ -166,7 +167,7 @@ function PasswordForm() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
-        <FieldHint>{PASSWORD_REQUIREMENTS_TEXT}</FieldHint>
+        <PasswordRequirementsList password={newPassword} />
       </div>
       <div>
         <Label htmlFor="confirm_password">Confirm new password</Label>

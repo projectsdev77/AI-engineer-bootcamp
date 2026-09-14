@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
 import { Button } from '@/components/ui/Button'
-import { Field, Label, FieldHint } from '@/components/ui/Field'
+import { Field, Label } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
-import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
+import PasswordRequirementsList from '@/components/ui/PasswordRequirementsList'
+import { validatePassword } from '@/lib/passwordPolicy'
 
 // Reached via the link in the reset email. Supabase's client library
 // exchanges the URL's recovery token for a session automatically on load
@@ -72,7 +73,7 @@ export default function ResetPasswordConfirmPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <FieldHint>{PASSWORD_REQUIREMENTS_TEXT}</FieldHint>
+                  <PasswordRequirementsList password={password} />
                 </div>
                 {error && (
                   <Callout tone="fail" heading="couldn't update password" icon={<AlertIcon className="h-3.5 w-3.5" />}>

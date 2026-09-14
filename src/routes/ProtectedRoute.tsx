@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 
 export function FullPageSpinner() {
@@ -9,13 +9,12 @@ export function FullPageSpinner() {
   )
 }
 
-/** Requires a signed-in user; otherwise redirects to /login, preserving the attempted path. */
+/** Requires a signed-in user; otherwise redirects to /login. Login always lands on /dashboard — it never resumes the attempted path. */
 export function RequireAuth() {
   const { session, loading } = useAuth()
-  const location = useLocation()
 
   if (loading) return <FullPageSpinner />
-  if (!session) return <Navigate to="/login" replace state={{ from: location }} />
+  if (!session) return <Navigate to="/login" replace />
   return <Outlet />
 }
 

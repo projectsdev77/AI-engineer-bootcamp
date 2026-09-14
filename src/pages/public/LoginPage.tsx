@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
 import { Button } from '@/components/ui/Button'
@@ -11,8 +11,6 @@ import authIll from '@/assets/illustrations/auth-hero.png'
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const from = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,7 +27,7 @@ export default function LoginPage() {
       setError(error)
       return
     }
-    navigate(from, { replace: true })
+    navigate('/dashboard', { replace: true })
   }
 
   async function handleGoogle() {

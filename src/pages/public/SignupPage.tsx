@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import PublicNav from '@/components/layout/PublicNav'
 import { Button, LinkButton } from '@/components/ui/Button'
-import { Field, Label, FieldHint } from '@/components/ui/Field'
+import { Field, Label } from '@/components/ui/Field'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon, GoogleIcon } from '@/components/ui/icons'
-import { PASSWORD_REQUIREMENTS_TEXT, validatePassword } from '@/lib/passwordPolicy'
+import PasswordRequirementsList from '@/components/ui/PasswordRequirementsList'
+import { validatePassword } from '@/lib/passwordPolicy'
 import authIll from '@/assets/illustrations/auth-hero.png'
 
 export default function SignupPage() {
@@ -130,7 +131,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="rounded-[12px] bg-paper focus:border-ink focus:shadow-[4px_4px_0_var(--color-lime)] focus:outline-none"
               />
-              <FieldHint>{PASSWORD_REQUIREMENTS_TEXT}</FieldHint>
+              <PasswordRequirementsList password={password} />
             </div>
 
             <Button type="submit" variant="site" disabled={submitting} className="mt-1 w-full rounded-[12px] border-2">
