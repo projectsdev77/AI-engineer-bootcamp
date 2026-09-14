@@ -10,7 +10,7 @@ import StatusPill from '@/components/ui/StatusPill'
 import Callout from '@/components/ui/Callout'
 import { LinkButton } from '@/components/ui/Button'
 import { StarIcon, LockIcon } from '@/components/ui/icons'
-import { IllComplete } from '@/components/ui/illustrations'
+import completeIll from '@/assets/illustrations/complete.jpg'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 
 function formatHours(hours: number) {
@@ -215,8 +215,8 @@ export default function DashboardPage() {
                 <p className="flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-[0.08em] text-ink">
                   <StarIcon className="h-3.5 w-3.5" /> track complete
                 </p>
-                <div className="ill-frame mt-4 aspect-[25/12] text-ink">
-                  <IllComplete />
+                <div className="ill-frame mt-4 aspect-[43/24]">
+                  <img src={completeIll} alt="" className="ill-photo" />
                 </div>
                 <p className="mt-4 font-display text-xl font-bold text-ink">You completed the track!</p>
                 <p className="mt-1 text-[14.5px] text-ink/70">Your certificate is ready to share.</p>

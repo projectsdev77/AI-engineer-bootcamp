@@ -3,7 +3,7 @@ import AppNav from '@/components/layout/AppNav'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useExceptionQueue } from '@/hooks/useExceptionQueue'
 import QueueCard from '@/components/queue/QueueCard'
-import { IllEmptyQueue } from '@/components/ui/illustrations'
+import emptyQueueIll from '@/assets/illustrations/mentor-emptyqueue.jpg'
 
 // Mentor-only (see App.tsx): admins no longer evaluate submissions, so
 // there is no admin route into this page and no mentor-reassignment
@@ -62,8 +62,8 @@ export default function ExceptionQueuePage() {
           ))}
           {list.length === 0 && (
             <div className="rounded-panel border-2 border-dashed border-disabled p-10 text-center">
-              <div className="ill-frame mx-auto aspect-[220/130] w-[220px] text-ink">
-                <IllEmptyQueue />
+              <div className="ill-frame mx-auto aspect-[527/504] w-[220px]">
+                <img src={emptyQueueIll} alt="" className="ill-photo" />
               </div>
               <p className="mt-4 font-mono text-xs font-bold uppercase tracking-wide text-muted">
                 {tab === 'open' ? 'end of queue' : 'nothing resolved yet'}
