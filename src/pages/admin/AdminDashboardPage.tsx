@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Link
                 to="/admin/students"
-                className="flex min-h-[150px] flex-col justify-between rounded-card bg-ink p-7 no-underline hover:shadow-app"
+                className="flex min-h-[150px] flex-col justify-between rounded-card bg-ink p-7 no-underline hover:shadow-hero"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-paper/70">
