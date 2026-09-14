@@ -26,6 +26,7 @@ import CertificatePage from '@/pages/public/CertificatePage'
 import ResetPasswordRequestPage from '@/pages/public/ResetPasswordRequestPage'
 import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
 import SettingsPage from '@/pages/student/SettingsPage'
+import MessagesPage from '@/pages/student/MessagesPage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
 
 function App() {
@@ -47,6 +48,10 @@ function App() {
             <Route path="/weeks/:weekId" element={<WeekPage />} />
             <Route path="/weeks/:weekId/lessons/:lessonId" element={<LessonPage />} />
             <Route path="/weeks/:weekId/assignments/:assignmentId" element={<AssignmentPage />} />
+
+            <Route element={<RequireRole roles={['student']} />}>
+              <Route path="/messages" element={<MessagesPage />} />
+            </Route>
 
             <Route element={<RequireRole roles={['mentor']} />}>
               <Route path="/mentor" element={<MentorDashboardPage />} />

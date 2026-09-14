@@ -44,6 +44,11 @@ export default function AppNav() {
           )}
         </Link>
         <div className="flex items-center gap-5">
+          {profile?.role === 'student' && (
+            <Link to="/messages" className="font-mono text-xs text-paper no-underline hover:text-lime">
+              messages
+            </Link>
+          )}
           {profile?.role === 'mentor' && (
             <Link to="/mentor" className="font-mono text-xs text-paper no-underline hover:text-lime">
               your students
