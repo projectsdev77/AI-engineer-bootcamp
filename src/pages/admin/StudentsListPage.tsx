@@ -87,6 +87,7 @@ export default function StudentsListPage() {
                 <TH>Student</TH>
                 <TH>Mentor</TH>
                 <TH>Status</TH>
+                <TH>Payment</TH>
                 <TH />
               </TR>
             </THead>
@@ -96,6 +97,13 @@ export default function StudentsListPage() {
                   <TD className="font-bold text-ink">{s.full_name ?? 'Unnamed student'}</TD>
                   <TD className="text-[13.5px] text-muted">{s.mentorName ?? 'No mentor assigned'}</TD>
                   <TD>{s.status === 'suspended' ? <StatusPill variant="fail">suspended</StatusPill> : <StatusPill variant="pass">active</StatusPill>}</TD>
+                  <TD>
+                    {s.payment_status === 'paid' ? (
+                      <StatusPill variant="pass">paid</StatusPill>
+                    ) : (
+                      <StatusPill variant="locked">unpaid</StatusPill>
+                    )}
+                  </TD>
                   <TD className="text-right">
                     <Link to={`/admin/students/${s.id}`} className="font-mono text-[11.5px] font-bold uppercase text-blue-700 no-underline hover:underline">
                       view →

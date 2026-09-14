@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card'
 import ProgressBar from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { Field, Label, SelectField } from '@/components/ui/Field'
+import StatusPill from '@/components/ui/StatusPill'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
 import type { Profile } from '@/types/database'
@@ -52,7 +53,7 @@ function useCurrentMentor(studentId: string | undefined) {
 export default function StudentAdminDetailPage() {
   const { studentId } = useParams()
   const { user } = useAuth()
-  const { data, loading: progressLoading, error } = useProgressOverview(studentId)
+  const { data, loading: progressLoading, error, refresh: refreshProgress } = useProgressOverview(studentId)
   const mentors = useMentorOptions()
   const { mentorId, refresh: refreshMentor } = useCurrentMentor(studentId)
   const [reassigning, setReassigning] = useState(false)
@@ -61,6 +62,28 @@ export default function StudentAdminDetailPage() {
   const [unlockReason, setUnlockReason] = useState('')
   const [unlocking, setUnlocking] = useState(false)
   const [unlockError, setUnlockError] = useState<string | null>(null)
+
+  const [paymentNote, setPaymentNote] = useState('')
+  const [settingPayment, setSettingPayment] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
+
+  async function setPaymentStatus(status: 'paid' | 'unpaid') {
+    if (!studentId) return
+    setSettingPayment(true)
+    setPaymentError(null)
+    const { error } = await supabase.rpc('admin_set_payment_status', {
+      p_student_id: studentId,
+      p_status: status,
+      p_note: paymentNote.trim() || null,
+    })
+    setSettingPayment(false)
+    if (error) {
+      setPaymentError(error.message)
+      return
+    }
+    setPaymentNote('')
+    await refreshProgress()
+  }
 
   async function reassignMentor(newMentorId: string) {
     if (!studentId) return
@@ -135,6 +158,47 @@ export default function StudentAdminDetailPage() {
                 </option>
               ))}
             </SelectField>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <span className="meta">Payment</span>
+              {data?.payment_status === 'paid' ? (
+                <StatusPill variant="pass">paid</StatusPill>
+              ) : (
+                <StatusPill variant="locked">unpaid</StatusPill>
+              )}
+            </div>
+            <p className="mt-2 text-[13.5px] text-muted">
+              Week 1 is free for everyone; the rest of the program requires payment. Stripe isn't wired up yet —
+              mark paid manually once payment is confirmed some other way.
+            </p>
+            <div className="mt-4 space-y-3">
+              <Field
+                value={paymentNote}
+                onChange={(e) => setPaymentNote(e.target.value)}
+                placeholder="Note (e.g. paid via bank transfer, ref #1234)…"
+              />
+              {paymentError && <p className="text-sm font-bold text-fail-ink">{paymentError}</p>}
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => void setPaymentStatus('paid')}
+                  disabled={settingPayment || data?.payment_status === 'paid'}
+                >
+                  {settingPayment ? 'Saving…' : 'Mark as paid'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void setPaymentStatus('unpaid')}
+                  disabled={settingPayment || data?.payment_status !== 'paid'}
+                >
+                  Mark as unpaid
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
 

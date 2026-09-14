@@ -285,6 +285,20 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-6">
+            {isStudent && data?.payment_status && (
+              <Card>
+                <p className="meta">Plan</p>
+                <p className="mt-2 font-display text-xl font-bold text-ink">
+                  {data.payment_status === 'paid' ? 'Full access' : 'Free week'}
+                </p>
+                <p className="mt-1.5 text-[13.5px] text-muted">
+                  {data.payment_status === 'paid'
+                    ? 'You have full access to all 12 weeks.'
+                    : 'Week 1 is free. Contact us to unlock the rest of the program.'}
+                </p>
+              </Card>
+            )}
+
             {overall && (
               <Card>
                 <p className="meta">Overall progress</p>

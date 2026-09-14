@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { currentWeek, isWeekComplete, useProgressOverview, type WeekProgress } from '@/hooks/useProgressOverview'
+import { currentWeek, isPaymentLocked, isWeekComplete, useProgressOverview, type WeekProgress } from '@/hooks/useProgressOverview'
+import type { PaymentStatus } from '@/types/database'
 import { useMyCertificate } from '@/hooks/useMyCertificate'
 import { useWeeklyHours } from '@/hooks/useWeeklyHours'
 import AppNav from '@/components/layout/AppNav'
@@ -62,11 +63,22 @@ function WeeklyHoursCard() {
   )
 }
 
-function WeekRow({ week, isCurrent }: { week: WeekProgress; isCurrent: boolean }) {
+function WeekRow({
+  week,
+  allWeeks,
+  paymentStatus,
+  isCurrent,
+}: {
+  week: WeekProgress
+  allWeeks: WeekProgress[]
+  paymentStatus?: PaymentStatus
+  isCurrent: boolean
+}) {
   const totalUnits = week.lessons_total + week.assignments_total
   const doneUnits = week.lessons_completed + week.assignments_done
   const percent = totalUnits > 0 ? Math.round((doneUnits / totalUnits) * 100) : 0
   const complete = isWeekComplete(week) && totalUnits > 0
+  const paymentLocked = isPaymentLocked(allWeeks, week, paymentStatus)
 
   const content = (
     <div className={`card flex items-center gap-4 ${!week.unlocked ? 'card-locked' : ''} ${isCurrent ? 'card-active' : ''}`}>
@@ -93,6 +105,8 @@ function WeekRow({ week, isCurrent }: { week: WeekProgress; isCurrent: boolean }
               <span className="shrink-0 font-mono text-[11px] font-bold text-muted">{doneUnits}/{totalUnits || 0}</span>
             </div>
           </>
+        ) : paymentLocked ? (
+          <p className="mt-0.5 text-[14.5px] text-faint">Locked — payment required to continue</p>
         ) : (
           <p className="mt-0.5 text-[14.5px] text-faint">Locked — finish the previous week first</p>
         )}
@@ -100,7 +114,7 @@ function WeekRow({ week, isCurrent }: { week: WeekProgress; isCurrent: boolean }
       <span className="shrink-0">
         {complete && <StatusPill variant="pass">complete</StatusPill>}
         {!complete && week.unlocked && <StatusPill variant="progress">in progress</StatusPill>}
-        {!week.unlocked && <StatusPill variant="locked">locked</StatusPill>}
+        {!week.unlocked && <StatusPill variant="locked">{paymentLocked ? 'payment required' : 'locked'}</StatusPill>}
       </span>
     </div>
   )
@@ -174,10 +188,23 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {data?.payment_status && data.payment_status !== 'paid' && weeks.some((w) => isPaymentLocked(weeks, w, data.payment_status)) && (
+              <Callout tone="warn" heading="Free week complete" className="mt-8">
+                You've finished the free week — the rest of the program requires payment to unlock. Contact us to
+                complete your enrollment.
+              </Callout>
+            )}
+
             <p className="mt-8 font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">Twelve weeks</p>
             <div className="mt-3 space-y-3">
               {weeks.map((week) => (
-                <WeekRow key={week.week_id} week={week} isCurrent={week.week_id === active?.week_id} />
+                <WeekRow
+                  key={week.week_id}
+                  week={week}
+                  allWeeks={weeks}
+                  paymentStatus={data?.payment_status}
+                  isCurrent={week.week_id === active?.week_id}
+                />
               ))}
             </div>
           </div>

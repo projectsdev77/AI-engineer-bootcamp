@@ -18,6 +18,7 @@ export type SubmissionAction =
   | 'status_overridden'
   | 'feedback_edited'
 export type EmailType = 'reengagement' | 'welcome'
+export type PaymentStatus = 'unpaid' | 'paid'
 
 export interface Profile {
   id: string
@@ -29,6 +30,9 @@ export interface Profile {
   weekly_hours_target: number | null
   onboarding_completed_at: string | null
   last_active_at: string | null
+  payment_status: PaymentStatus
+  paid_at: string | null
+  payment_note: string | null
   created_at: string
 }
 
