@@ -6,6 +6,7 @@ import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import { Field, Label } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import Callout from '@/components/ui/Callout'
+import StatusPill from '@/components/ui/StatusPill'
 import { AlertIcon } from '@/components/ui/icons'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { functionErrorMessage } from '@/lib/functionsError'
@@ -13,6 +14,7 @@ import type { Profile } from '@/types/database'
 
 interface MentorRow extends Profile {
   activeStudentCount: number
+  pending: boolean
 }
 
 function useMentors() {
@@ -37,10 +39,19 @@ function useMentors() {
       countByMentor.set(a.mentor_id, (countByMentor.get(a.mentor_id) ?? 0) + 1)
     }
 
+    // profiles has no visibility into auth.users, so whether an invite has
+    // actually been accepted (as opposed to just sent — admin-invite-mentor
+    // creates the profile row immediately) has to come from a separate
+    // admin-only call. Don't let this fail the whole page: an invite still
+    // shows up, just without the pending badge, if it errors.
+    const { data: statusData } = await supabase.functions.invoke('admin-mentor-status')
+    const pendingIds = new Set<string>(statusData?.pending ?? [])
+
     setMentors(
       ((profiles ?? []) as Profile[]).map((p) => ({
         ...p,
         activeStudentCount: countByMentor.get(p.id) ?? 0,
+        pending: pendingIds.has(p.id),
       })),
     )
     setLoading(false)
@@ -145,6 +156,7 @@ export default function MentorsListPage() {
             <THead>
               <TR>
                 <TH>Mentor</TH>
+                <TH>Status</TH>
                 <TH>Active students</TH>
               </TR>
             </THead>
@@ -152,6 +164,13 @@ export default function MentorsListPage() {
               {mentors.map((m) => (
                 <TR key={m.id}>
                   <TD className="font-bold text-ink">{m.full_name ?? 'Unnamed mentor'}</TD>
+                  <TD>
+                    {m.pending ? (
+                      <StatusPill variant="warn">pending invite</StatusPill>
+                    ) : (
+                      <StatusPill variant="pass">active</StatusPill>
+                    )}
+                  </TD>
                   <TD className="text-[13.5px] text-muted">{m.activeStudentCount}</TD>
                 </TR>
               ))}
