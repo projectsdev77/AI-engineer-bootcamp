@@ -26,14 +26,28 @@ const SITE_URL = Deno.env.get('SITE_URL') ?? 'http://localhost:5173'
 const CONCURRENCY = 5
 const TIMEOUT_MS = 8000
 
+// A plain server-side fetch with no headers reads as a bot to a lot of
+// sites (Cloudflare, OpenAI's docs, etc.), which 403 it even though the
+// same URL loads fine in a real browser. These headers make the request
+// look like an ordinary browser visit to cut down on that false-positive
+// class of "broken" link.
+const BROWSER_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+}
+
 async function checkUrl(url: string): Promise<number | null> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
-    // HEAD first (cheaper); some sites reject HEAD (405/501), so fall back to GET.
-    let res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: controller.signal })
-    if (res.status === 405 || res.status === 501) {
-      res = await fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal })
+    // HEAD first (cheaper); some sites reject or bot-block HEAD specifically
+    // (405/501/403) even though a real browser's GET would succeed, so fall
+    // back to GET in all of those cases.
+    let res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: controller.signal, headers: BROWSER_HEADERS })
+    if (res.status === 405 || res.status === 501 || res.status === 403) {
+      res = await fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal, headers: BROWSER_HEADERS })
     }
     return res.status
   } catch {
