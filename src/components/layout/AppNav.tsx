@@ -1,11 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useUnreadMessages } from '@/hooks/useUnreadMessages'
 import { Monogram } from '@/components/ui/icons'
 import Avatar from '@/components/ui/Avatar'
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-fail px-1 font-mono text-[10px] font-bold leading-none text-white">
+      {count > 9 ? '9+' : count}
+    </span>
+  )
+}
 
 export default function AppNav() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const unreadMessages = useUnreadMessages()
 
   // Navigate to the landing page ourselves rather than letting
   // ProtectedRoute's own redirect fire: that redirect attaches the current
@@ -45,13 +56,15 @@ export default function AppNav() {
         </Link>
         <div className="flex items-center gap-5">
           {profile?.role === 'student' && (
-            <Link to="/messages" className="font-mono text-xs text-paper no-underline hover:text-lime">
+            <Link to="/messages" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
               messages
+              <UnreadBadge count={unreadMessages} />
             </Link>
           )}
           {profile?.role === 'mentor' && (
-            <Link to="/mentor" className="font-mono text-xs text-paper no-underline hover:text-lime">
+            <Link to="/mentor" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
               your students
+              <UnreadBadge count={unreadMessages} />
             </Link>
           )}
           {profile?.role === 'admin' && (

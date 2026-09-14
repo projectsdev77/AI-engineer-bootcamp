@@ -36,6 +36,22 @@ export function useMessageThread(studentId: string | undefined) {
     void refresh()
   }, [refresh])
 
+  // Marks the other party's messages read the moment this thread is
+  // viewed — this is what clears the unread badge in AppNav
+  // (useUnreadMessages). Keyed on the loaded messages themselves (not
+  // just mount) so reopening/re-polling an already-open thread still
+  // catches anything that arrived since.
+  useEffect(() => {
+    if (!user) return
+    const unreadIds = messages.filter((m) => m.sender_id !== user.id && !m.read_at).map((m) => m.id)
+    if (unreadIds.length === 0) return
+    supabase
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', unreadIds)
+      .then(undefined, () => {})
+  }, [messages, user])
+
   async function send(body: string) {
     if (!studentId || !user || !body.trim()) return
     setSending(true)
