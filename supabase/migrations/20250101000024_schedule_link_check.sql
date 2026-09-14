@@ -25,7 +25,7 @@ select cron.schedule(
   '0 6 * * *', -- 06:00 UTC daily
   $$
   select net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-resource-links',
+    url := 'https://poizaqubkpueehuwczpu.supabase.co/functions/v1/check-resource-links',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
