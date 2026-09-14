@@ -22,7 +22,9 @@ function useMentors() {
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: it's also called right after
+    // a successful invite, and flipping loading back to true would
+    // unmount the whole page back to a full-page spinner right then.
     const { data: profiles } = await supabase
       .from('profiles')
       .select('*')

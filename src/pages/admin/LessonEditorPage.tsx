@@ -96,13 +96,16 @@ function useLesson(lessonId: string | undefined) {
 
   async function refresh() {
     if (!lessonId) return
-    setLoading(true)
+    // Deliberately not setLoading(true) here: saveLesson() also calls
+    // refresh(), and flipping loading back to true would unmount the
+    // whole editor back to a full-page spinner on every save.
     const { data } = await supabase.from('lessons').select('*').eq('id', lessonId).single()
     setLesson(data as Lesson)
     setLoading(false)
   }
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId])

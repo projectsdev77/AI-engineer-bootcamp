@@ -22,7 +22,10 @@ export function useExceptionQueue() {
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: resolve() also calls
+    // refresh(), and flipping loading back to true on every resolved item
+    // would unmount the whole queue back to a full-page spinner on every
+    // action, which reads as the page reloading.
     setError(null)
     try {
       const { data: submissions, error: subErr } = await supabase

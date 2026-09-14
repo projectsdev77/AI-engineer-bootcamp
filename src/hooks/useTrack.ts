@@ -9,7 +9,9 @@ export function useTrack() {
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: createDefaultTrack() also
+    // calls refresh(), and flipping loading back to true would unmount
+    // the whole page back to a full-page spinner right after clicking it.
     const { data, error } = await supabase
       .from('tracks')
       .select('*')

@@ -53,7 +53,11 @@ export function useProgressOverview(targetUserId?: string) {
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: callers also invoke this
+    // after mutations (marking paid, a manual week unlock, ...), and
+    // flipping loading back to true on each of those would unmount the
+    // whole page back to a full-page spinner every time, which reads as
+    // the page reloading.
     const { data, error } = await supabase.rpc('get_progress_overview', {
       p_target_user_id: targetUserId ?? null,
     })
@@ -67,6 +71,7 @@ export function useProgressOverview(targetUserId?: string) {
   }, [targetUserId])
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
   }, [refresh])
 

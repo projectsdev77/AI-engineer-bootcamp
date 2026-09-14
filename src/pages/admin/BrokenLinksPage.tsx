@@ -21,7 +21,9 @@ function useBrokenResources() {
   const [loading, setLoading] = useState(true)
 
   async function refresh() {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: dismiss()/runCheck() also
+    // call refresh(), and flipping loading back to true would unmount the
+    // whole page back to a full-page spinner on every action.
     const { data: broken } = await supabase.from('resources').select('*').eq('is_broken', true)
     const lessonIds = [...new Set((broken ?? []).map((r) => r.lesson_id))]
     const { data: lessons } = lessonIds.length

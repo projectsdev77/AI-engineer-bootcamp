@@ -21,13 +21,16 @@ function useWeek(weekId: string | undefined) {
 
   async function refresh() {
     if (!weekId) return
-    setLoading(true)
+    // Deliberately not setLoading(true) here: saveWeek()/togglePublish()
+    // also call refresh(), and flipping loading back to true would
+    // unmount the whole editor back to a full-page spinner on every save.
     const { data } = await supabase.from('weeks').select('*').eq('id', weekId).single()
     setWeek(data as Week)
     setLoading(false)
   }
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekId])

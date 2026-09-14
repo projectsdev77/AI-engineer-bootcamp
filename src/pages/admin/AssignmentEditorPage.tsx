@@ -19,13 +19,16 @@ function useAssignment(assignmentId: string | undefined) {
 
   async function refresh() {
     if (!assignmentId) return
-    setLoading(true)
+    // Deliberately not setLoading(true) here: save() also calls refresh(),
+    // and flipping loading back to true would unmount the whole editor
+    // back to a full-page spinner on every save.
     const { data } = await supabase.from('assignments').select('*').eq('id', assignmentId).single()
     setAssignment(data as Assignment)
     setLoading(false)
   }
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignmentId])

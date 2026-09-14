@@ -13,7 +13,10 @@ export function useMessageThread(studentId: string | undefined) {
 
   const refresh = useCallback(async () => {
     if (!studentId) return
-    setLoading(true)
+    // Deliberately not setLoading(true) here: send() also calls refresh(),
+    // and flipping loading back to true on every sent message would
+    // unmount the whole thread back to a bare "loading…" state on every
+    // send, which reads as the page reloading.
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -29,6 +32,7 @@ export function useMessageThread(studentId: string | undefined) {
   }, [studentId])
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
   }, [refresh])
 

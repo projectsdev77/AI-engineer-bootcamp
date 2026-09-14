@@ -25,7 +25,13 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
 
   const refresh = useCallback(async () => {
     if (!assignmentId || !user) return
-    setLoading(true)
+    // Deliberately not setLoading(true) here: refresh() also runs after
+    // submitting, after an AI evaluation finishes (the polling effect
+    // below), and after flagging for review — flipping loading back to
+    // true on each of those would unmount the whole assignment page back
+    // to a full-page spinner every time, which reads as the page
+    // reloading. The mount/assignment-change effect below is the only
+    // place that should show that state.
     setError(null)
 
     try {
@@ -78,6 +84,7 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
   }, [assignmentId, user])
 
   useEffect(() => {
+    setLoading(true)
     void refresh()
   }, [refresh])
 

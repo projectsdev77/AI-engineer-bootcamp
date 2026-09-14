@@ -19,7 +19,10 @@ export function useCertificateTemplate() {
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Deliberately not setLoading(true) here: createDefault()/save() also
+    // call refresh(), and flipping loading back to true on every save
+    // would unmount the whole editor back to a full-page spinner on every
+    // click, which reads as the page reloading.
     const { data, error } = await supabase
       .from('certificate_templates')
       .select('*')
