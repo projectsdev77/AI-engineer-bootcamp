@@ -43,6 +43,22 @@ export function MessageIcon(props: IconProps) {
   )
 }
 
+export function CopyIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M8 2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-1v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2Zm0 2v3h6a2 2 0 0 1 2 2v6h1V4H8ZM5 9v11h9V9H5Z" />
+    </Base>
+  )
+}
+
+export function DownloadIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M11 3h2v9.2l3.1-3.1 1.4 1.4-5.5 5.5-5.5-5.5 1.4-1.4L11 12.2V3ZM4 19h16v2H4v-2Z" />
+    </Base>
+  )
+}
+
 export function AssignmentIcon(props: IconProps) {
   return (
     <Base {...props}>

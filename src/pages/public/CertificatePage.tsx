@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import PublicNav from '@/components/layout/PublicNav'
 import CertificateCard from '@/components/certificate/CertificateCard'
 import Callout from '@/components/ui/Callout'
-import { AlertIcon, CheckIcon } from '@/components/ui/icons'
+import { Button } from '@/components/ui/Button'
+import { AlertIcon, CheckIcon, CopyIcon, DownloadIcon } from '@/components/ui/icons'
 
 interface CertificateSnapshot {
   title_text: string
@@ -21,6 +22,18 @@ export default function CertificatePage() {
   const [issuedAt, setIssuedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API can be unavailable (insecure context, permissions) —
+      // the link is still visible in the address bar either way.
+    }
+  }
 
   useEffect(() => {
     if (!code) return
@@ -67,10 +80,20 @@ export default function CertificatePage() {
 
         {!loading && snapshot && (
           <>
-            <CertificateCard fields={snapshot} />
+            <div className="certificate-print">
+              <CertificateCard fields={snapshot} />
+            </div>
             <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-faint">
               issued {issuedAt && new Date(issuedAt).toLocaleDateString()} · anyone with this code can verify it
             </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3 print:hidden">
+              <Button variant="secondary" size="sm" onClick={() => void copyLink()}>
+                <CopyIcon className="h-4 w-4" /> {copied ? 'Link copied!' : 'Copy link'}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => window.print()}>
+                <DownloadIcon className="h-4 w-4" /> Download PDF
+              </Button>
+            </div>
           </>
         )}
       </main>

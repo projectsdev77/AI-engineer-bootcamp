@@ -214,3 +214,14 @@
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   .btn:active { transform: none; }
 }
+
+/* "Download" on the certificate page is the browser's own print-to-PDF
+ * (no canvas/image-export library needed, and no risk of a cross-origin
+ * admin-set logo_url tainting a canvas) — this just hides everything
+ * except the certificate itself so the saved PDF is clean. */
+@media print {
+  body * { visibility: hidden; }
+  .certificate-print, .certificate-print * { visibility: visible; }
+  .certificate-print { position: absolute; top: 0; left: 0; width: 100%; }
+  .certificate-print .shadow-app { box-shadow: none; }
+}
