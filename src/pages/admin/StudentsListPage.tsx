@@ -86,7 +86,6 @@ export default function StudentsListPage() {
               <TR>
                 <TH>Student</TH>
                 <TH>Mentor</TH>
-                <TH>Status</TH>
                 <TH>Payment</TH>
                 <TH />
               </TR>
@@ -96,7 +95,6 @@ export default function StudentsListPage() {
                 <TR key={s.id}>
                   <TD className="font-bold text-ink">{s.full_name ?? 'Unnamed student'}</TD>
                   <TD className="text-[13.5px] text-muted">{s.mentorName ?? 'No mentor assigned'}</TD>
-                  <TD>{s.status === 'suspended' ? <StatusPill variant="fail">suspended</StatusPill> : <StatusPill variant="pass">active</StatusPill>}</TD>
                   <TD>
                     {s.payment_status === 'paid' ? (
                       <StatusPill variant="pass">paid</StatusPill>
