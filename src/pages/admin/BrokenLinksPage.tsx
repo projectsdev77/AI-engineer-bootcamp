@@ -5,6 +5,7 @@ import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import Callout from '@/components/ui/Callout'
+import { Button } from '@/components/ui/Button'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import type { Resource } from '@/types/database'
 
@@ -57,9 +58,25 @@ function useBrokenResources() {
 
 export default function BrokenLinksPage() {
   const { resources, loading, refresh } = useBrokenResources()
+  const [checking, setChecking] = useState(false)
+  const [checkError, setCheckError] = useState<string | null>(null)
+  const [lastCheck, setLastCheck] = useState<{ checked: number; brokenCount: number } | null>(null)
 
   async function dismiss(resourceId: string) {
     await supabase.from('resources').update({ is_broken: false }).eq('id', resourceId)
+    await refresh()
+  }
+
+  async function runCheck() {
+    setChecking(true)
+    setCheckError(null)
+    const { data, error } = await supabase.functions.invoke('check-resource-links')
+    setChecking(false)
+    if (error) {
+      setCheckError(error.message)
+      return
+    }
+    setLastCheck({ checked: data.checked, brokenCount: data.brokenCount })
     await refresh()
   }
 
@@ -70,12 +87,31 @@ export default function BrokenLinksPage() {
       <AppNav />
       <AdminNav />
       <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
-        <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ {resources.length} flagged ]</p>
-        <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Broken links</h1>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ {resources.length} flagged ]</p>
+            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Broken links</h1>
+          </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <Button type="button" variant="secondary" onClick={() => void runCheck()} disabled={checking}>
+              {checking ? 'Checking…' : 'Check links now'}
+            </Button>
+            {lastCheck && !checking && (
+              <p className="font-mono text-[11px] text-muted">
+                checked {lastCheck.checked} · {lastCheck.brokenCount} broken
+              </p>
+            )}
+          </div>
+        </div>
         <p className="mt-2 text-[14.5px] text-muted">
-          Flagged by the periodic link checker. Students are never blocked by these (PD-009) — this is admin-only
-          visibility.
+          Flagged by the link checker (HTTP failures only — a link that resolves but points to the wrong page won't
+          be caught). Students are never blocked by these (PD-009) — this is admin-only visibility.
         </p>
+        {checkError && (
+          <Callout tone="fail" className="mt-3">
+            {checkError}
+          </Callout>
+        )}
 
         <div className="mt-6">
           {resources.length > 0 ? (
