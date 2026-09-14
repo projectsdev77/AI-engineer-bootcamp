@@ -133,7 +133,7 @@ export default function SubmissionResult({
             </div>
           ) : (
             <button onClick={() => setShowFlagForm(true)} className="font-bold text-blue-700 underline decoration-2 underline-offset-2">
-              This feedback is AI-generated. Ask a mentor for a second look →
+              Ask a mentor for a second look →
             </button>
           )}
         </div>
