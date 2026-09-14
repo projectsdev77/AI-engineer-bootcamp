@@ -109,12 +109,10 @@ export default function BrokenLinksPage() {
           </div>
         </div>
         <p className="mt-2 text-[14.5px] text-muted">
-          Flagged by the link checker (HTTP failures only — a link that resolves but points to the wrong page won't
-          be caught, and a few sites block automated checks entirely even when they work fine for a real visitor).
-          Students are never blocked by these (PD-009) — this is admin-only visibility.{' '}
-          <span className="font-bold text-ink">Mark fixed</span> clears it until the next check; if a link keeps
-          coming back broken even though it works when you open it,{' '}
-          <span className="font-bold text-ink">always allow</span> excludes it from future checks for good.
+          Links that failed a check. Students never see this. Use{' '}
+          <span className="font-bold text-ink">mark fixed</span> once you've fixed a link, or{' '}
+          <span className="font-bold text-ink">always allow</span> if it keeps flagging a link you've confirmed
+          works.
         </p>
         {checkError && (
           <Callout tone="fail" className="mt-3">
