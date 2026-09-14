@@ -81,7 +81,11 @@ export default function WeekEditorPage() {
 
   async function togglePublish() {
     if (!weekId || !week) return
-    await supabase.from('weeks').update({ status: week.status === 'published' ? 'draft' : 'published' }).eq('id', weekId)
+    const nowPublishing = week.status !== 'published'
+    await supabase
+      .from('weeks')
+      .update({ status: nowPublishing ? 'published' : 'draft', published_at: nowPublishing ? new Date().toISOString() : null })
+      .eq('id', weekId)
     await refresh()
   }
 
@@ -298,6 +302,11 @@ export default function WeekEditorPage() {
                   Unpublishing hides the week from the public curriculum page. Students who already unlocked it keep
                   access.
                 </p>
+                {week.published_at && (
+                  <p className="mt-3 font-mono text-[11px] text-paper/50">
+                    published {new Date(week.published_at).toLocaleDateString()}
+                  </p>
+                )}
               </div>
 
               <Callout tone="info" heading="editing a live week">
