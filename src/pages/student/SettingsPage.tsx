@@ -60,7 +60,6 @@ function ProfileForm() {
     <Card className="space-y-4">
       <div className="flex items-center gap-4">
         <Avatar name={form.full_name || profile?.full_name} size={56} />
-        <p className="text-[13px] text-muted">Your avatar shows the first letter of your name.</p>
       </div>
       <div>
         <Label>Email</Label>

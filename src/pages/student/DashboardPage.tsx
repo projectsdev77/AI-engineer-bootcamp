@@ -58,9 +58,6 @@ function WeeklyHoursCard() {
       ) : (
         <p className="mt-3 text-[13.5px] text-muted">{formatHours(remaining)} hrs left to reach your target.</p>
       )}
-      <p className="mt-3 text-[11px] text-faint">
-        Based on time estimates for completed resources — approximate, not a stopwatch.
-      </p>
     </div>
   )
 }
