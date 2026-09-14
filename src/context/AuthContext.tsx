@@ -81,8 +81,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) return { error: error.message }
+
+    // Suspension is enforced app-wide by RequireAuth (which also covers
+    // Google OAuth and an already-open session that gets suspended
+    // mid-visit), but checking here too means a suspended student gets a
+    // clear message immediately on login instead of briefly appearing
+    // signed in and then being bounced back out.
+    const { data: profileRow } = await supabase.from('profiles').select('status').eq('id', data.user.id).single()
+    if (profileRow?.status === 'suspended') {
+      await supabase.auth.signOut()
+      return { error: 'This account has been suspended. Contact support if you think this is a mistake.' }
+    }
+
+    return { error: null }
   }
 
   async function signInWithGoogle() {
