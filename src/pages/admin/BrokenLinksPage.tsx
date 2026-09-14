@@ -7,6 +7,7 @@ import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
+import { functionErrorMessage } from '@/lib/functionsError'
 import type { Resource } from '@/types/database'
 
 interface BrokenResource extends Resource {
@@ -78,7 +79,7 @@ export default function BrokenLinksPage() {
     const { data, error } = await supabase.functions.invoke('check-resource-links')
     setChecking(false)
     if (error) {
-      setCheckError(error.message)
+      setCheckError(await functionErrorMessage(error))
       return
     }
     setLastCheck({ checked: data.checked, brokenCount: data.brokenCount })

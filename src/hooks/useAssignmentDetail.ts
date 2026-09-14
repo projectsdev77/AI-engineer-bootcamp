@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { functionErrorMessage } from '@/lib/functionsError'
 import type { Assignment, QuizConfig, Submission, TextConfig, UrlConfig } from '@/types/database'
 
 export interface QuizQuestionWithOptions {
@@ -189,7 +190,7 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
       if (error) {
         console.error('evaluate-submission invoke failed', error)
         setError(
-          `Couldn't reach the grading service (${error.message}). Your submission was saved — a mentor will review it if grading doesn't complete.`,
+          `Couldn't reach the grading service (${await functionErrorMessage(error)}). Your submission was saved — a mentor will review it if grading doesn't complete.`,
         )
       }
     } catch (e) {

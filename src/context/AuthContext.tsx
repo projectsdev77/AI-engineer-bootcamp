@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { functionErrorMessage } from '@/lib/functionsError'
 import type { Profile } from '@/types/database'
 
 interface AuthContextValue {
@@ -141,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase.functions.invoke('delete-account')
       if (error) {
-        return { error: error.message }
+        return { error: await functionErrorMessage(error) }
       }
       if (data?.error) {
         return { error: data.error as string }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import Callout from '@/components/ui/Callout'
 import { AlertIcon } from '@/components/ui/icons'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
+import { functionErrorMessage } from '@/lib/functionsError'
 import type { Profile } from '@/types/database'
 
 interface MentorRow extends Profile {
@@ -69,7 +70,7 @@ function AddMentorForm({ onAdded }: { onAdded: () => void }) {
     })
     setSubmitting(false)
     if (invokeError) {
-      setError(invokeError.message)
+      setError(await functionErrorMessage(invokeError))
       return
     }
     if (data?.error) {
