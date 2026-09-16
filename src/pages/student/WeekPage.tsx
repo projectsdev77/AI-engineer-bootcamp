@@ -134,23 +134,33 @@ export default function WeekPage() {
                 <p className="meta">Week {week.position} contents</p>
                 <ul className="mt-3 divide-y divide-hairline">
                   {lessons.map((lesson) => (
-                    <li key={lesson.id} className="flex items-center gap-3 py-2.5">
-                      <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border-2 font-mono text-[10px] font-bold ${
-                          lesson.completed ? 'border-pass bg-pass-bg text-pass-ink' : 'border-ink text-ink'
-                        }`}
+                    <li key={lesson.id}>
+                      <Link
+                        to={`/weeks/${week.id}/lessons/${lesson.id}`}
+                        className="flex items-center gap-3 py-2.5 no-underline hover:text-blue-700"
                       >
-                        {lesson.completed ? '✓' : lesson.position}
-                      </span>
-                      <span className="text-[14px] text-ink">{lesson.title}</span>
+                        <span
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border-2 font-mono text-[10px] font-bold ${
+                            lesson.completed ? 'border-pass bg-pass-bg text-pass-ink' : 'border-ink text-ink'
+                          }`}
+                        >
+                          {lesson.completed ? '✓' : lesson.position}
+                        </span>
+                        <span className="text-[14px] text-ink">{lesson.title}</span>
+                      </Link>
                     </li>
                   ))}
                   {assignments.map((a) => (
-                    <li key={a.id} className="flex items-center gap-3 py-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border-2 border-ink bg-lilac/40">
-                        <AssignmentIcon className="h-3 w-3 text-ink" />
-                      </span>
-                      <span className="text-[14px] text-ink">{a.title}</span>
+                    <li key={a.id}>
+                      <Link
+                        to={`/weeks/${week.id}/assignments/${a.id}`}
+                        className="flex items-center gap-3 py-2.5 no-underline hover:text-blue-700"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border-2 border-ink bg-lilac/40">
+                          <AssignmentIcon className="h-3 w-3 text-ink" />
+                        </span>
+                        <span className="text-[14px] text-ink">{a.title}</span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
