@@ -165,8 +165,10 @@ export default function LessonPage() {
                     onClick={() => {
                       if (nextLesson) {
                         navigate(`/weeks/${weekId}/lessons/${nextLesson.id}`)
+                      } else if (assignments[0]) {
+                        navigate(`/weeks/${weekId}/assignments/${assignments[0].id}`)
                       } else {
-                        navigate(`/weeks/${weekId}#assignments`)
+                        navigate(`/weeks/${weekId}`)
                       }
                     }}
                     className="shrink-0 text-ink"
