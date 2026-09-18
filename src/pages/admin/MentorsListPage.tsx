@@ -66,6 +66,44 @@ function useMentors() {
   return { mentors, loading, refresh }
 }
 
+function RemoveMentorButton({ mentor, onRemoved }: { mentor: MentorRow; onRemoved: () => void }) {
+  const [removing, setRemoving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleRemove() {
+    const warning =
+      mentor.activeStudentCount > 0
+        ? `Remove ${mentor.full_name ?? 'this mentor'}? They have ${mentor.activeStudentCount} active student${mentor.activeStudentCount === 1 ? '' : 's'} — those students will be left unassigned and need a new mentor picked manually from their student page. This cannot be undone.`
+        : `Remove ${mentor.full_name ?? 'this mentor'}? This cannot be undone.`
+    if (!confirm(warning)) return
+
+    setError(null)
+    setRemoving(true)
+    const { data, error: invokeError } = await supabase.functions.invoke('admin-remove-mentor', {
+      body: { mentorId: mentor.id },
+    })
+    setRemoving(false)
+    if (invokeError) {
+      setError(await functionErrorMessage(invokeError))
+      return
+    }
+    if (data?.error) {
+      setError(data.error as string)
+      return
+    }
+    onRemoved()
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button type="button" variant="danger" onClick={() => void handleRemove()} disabled={removing}>
+        {removing ? 'Removing…' : 'Remove'}
+      </Button>
+      {error && <p className="text-right text-[11.5px] font-bold text-fail-ink">{error}</p>}
+    </div>
+  )
+}
+
 function AddMentorForm({ onAdded }: { onAdded: () => void }) {
   const [open, setOpen] = useState(false)
   const [fullName, setFullName] = useState('')
@@ -160,6 +198,7 @@ export default function MentorsListPage() {
                 <TH>Mentor</TH>
                 <TH>Status</TH>
                 <TH>Active students</TH>
+                <TH />
               </TR>
             </THead>
             <TBody>
@@ -174,6 +213,9 @@ export default function MentorsListPage() {
                     )}
                   </TD>
                   <TD className="text-[13.5px] text-muted">{m.activeStudentCount}</TD>
+                  <TD className="text-right">
+                    <RemoveMentorButton mentor={m} onRemoved={refresh} />
+                  </TD>
                 </TR>
               ))}
             </TBody>
