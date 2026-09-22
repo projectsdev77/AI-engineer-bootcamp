@@ -233,13 +233,13 @@ function DangerZone() {
           <Label htmlFor="confirm_delete">Type DELETE to confirm</Label>
           <Field id="confirm_delete" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="border-fail" />
           {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
             <Button
               type="button"
               variant="secondary"
               onClick={() => void handleDelete()}
               disabled={confirmText !== 'DELETE' || deleting}
-              className="border-fail bg-fail text-white"
+              className="w-full border-fail bg-fail text-white"
             >
               {deleting ? 'Deleting…' : 'Permanently delete'}
             </Button>
@@ -251,6 +251,7 @@ function DangerZone() {
                 setConfirmText('')
                 setError(null)
               }}
+              className="w-full"
             >
               Cancel
             </Button>
