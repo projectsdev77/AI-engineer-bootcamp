@@ -16,7 +16,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(
-    searchParams.get('suspended') ? 'This account has been suspended. Contact support if you think this is a mistake.' : null,
+    searchParams.get('suspended')
+      ? 'This account has been suspended. Contact support if you think this is a mistake.'
+      : searchParams.get('no_account')
+        ? "No account found with that Google login — sign up first."
+        : null,
   )
   const [submitting, setSubmitting] = useState(false)
 
@@ -35,7 +39,7 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setError(null)
-    const { error } = await signInWithGoogle()
+    const { error } = await signInWithGoogle('login')
     if (error) setError(error)
   }
 

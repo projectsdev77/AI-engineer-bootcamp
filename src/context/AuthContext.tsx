@@ -15,7 +15,7 @@ interface AuthContextValue {
     fullName: string,
   ) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signInWithGoogle: () => Promise<{ error: string | null }>
+  signInWithGoogle: (intent?: 'login') => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>
@@ -50,11 +50,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(undefined, () => {})
   }
 
+  // "Continue with Google" on the login page passes ?auth_intent=login
+  // through the OAuth redirect (see signInWithGoogle below) — Supabase's
+  // OAuth flow has no concept of login-only vs signup-only, so without
+  // this check it silently creates a brand-new account the instant
+  // someone with no existing account clicks what they think is a login
+  // button. A freshly-created auth.users row's created_at is (to the
+  // second) "just now", so that plus the intent flag is how this catches
+  // it: reject by deleting the account it just made and bouncing back to
+  // /login instead of letting the session stand. Returns true if it
+  // handled a rejection, so the caller stops before treating this as a
+  // normal signed-in session.
+  async function rejectIfUnrecognizedGoogleLogin(sessionUser: User): Promise<boolean> {
+    if (new URLSearchParams(window.location.search).get('auth_intent') !== 'login') return false
+    const createdAt = new Date(sessionUser.created_at).getTime()
+    if (Date.now() - createdAt >= 20_000) return false
+    await supabase.functions.invoke('delete-account').catch(() => {})
+    await supabase.auth.signOut()
+    window.location.replace('/login?no_account=1')
+    return true
+  }
+
   useEffect(() => {
     let active = true
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!active) return
+      if (data.session?.user && (await rejectIfUnrecognizedGoogleLogin(data.session.user))) return
       setSession(data.session)
       if (data.session?.user) {
         await loadProfile(data.session.user.id)
@@ -64,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (newSession?.user && (await rejectIfUnrecognizedGoogleLogin(newSession.user))) return
       setSession(newSession)
       if (newSession?.user) {
         await loadProfile(newSession.user.id)
@@ -115,10 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null }
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(intent?: 'login') {
+    // The redirect URL is the only way to carry "which button was this"
+    // across the trip to Google and back — see rejectIfUnrecognizedGoogleLogin.
+    const redirectTo =
+      intent === 'login' ? `${window.location.origin}/dashboard?auth_intent=login` : `${window.location.origin}/dashboard`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo },
     })
     return { error: error?.message ?? null }
   }
