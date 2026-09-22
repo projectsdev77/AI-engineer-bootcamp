@@ -179,15 +179,16 @@ export default function StudentAdminDetailPage() {
       <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
         {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
 
-        {/* Stacked full-width, not a 2-col grid: these cards hold genuinely
-            different amounts of content (a select vs. a form with two
-            buttons), and forcing them into paired rows either stretches
-            the shorter card into dead space (align-items: stretch) or
-            leaves ragged, unaligned bottoms (items-start) — neither reads
-            as finished. Matches "Manually unlock a week" below, and
-            Shopify Polaris's settings-page guidance: grouped settings
-            stack vertically rather than tile. */}
-        <div className="space-y-6">
+        {/* Overall progress and Assigned mentor are both genuinely compact
+            (a progress bar, a single select) and stay evenly matched at
+            every width, so they're a safe pair for a 2-col row. Account
+            and Payment aren't — different amounts of content (a status +
+            one button vs. a status + a form with two buttons) means
+            pairing them either stretches the shorter one into dead space
+            or leaves ragged bottoms, so those stay full-width below,
+            matching "Manually unlock a week" and Shopify Polaris's
+            settings-page guidance: grouped settings stack vertically. */}
+        <div className="grid gap-6 sm:grid-cols-2">
           {overall && (
             <Card>
               <div className="flex items-center justify-between">
@@ -213,7 +214,9 @@ export default function StudentAdminDetailPage() {
               ))}
             </SelectField>
           </Card>
+        </div>
 
+        <div className="mt-6 space-y-6">
           <Card>
             <div className="flex items-center justify-between">
               <span className="meta">Account</span>
