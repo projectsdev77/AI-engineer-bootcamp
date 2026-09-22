@@ -179,7 +179,7 @@ export default function StudentAdminDetailPage() {
       <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
         {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid items-start gap-6 lg:grid-cols-2">
           {overall && (
             <Card>
               <div className="flex items-center justify-between">
