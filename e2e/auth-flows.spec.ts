@@ -152,10 +152,7 @@ test.describe('Account status', () => {
     await page.getByLabel('Password', { exact: true }).fill(password)
     await page.getByRole('button', { name: /log in/i }).click()
 
-    // The app doesn't currently gate login on profiles.status, so this
-    // documents actual behavior: login succeeds and lands on /dashboard.
-    // Kept as a living assertion (not skipped) so a future enforcement
-    // change is caught by CI instead of drifting silently.
-    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20_000 })
+    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 })
+    await expect(page.getByText(/suspended/i)).toBeVisible()
   })
 })
