@@ -110,12 +110,17 @@ export default function StudentAdminDetailPage() {
     setSettingStatus(true)
     setStatusError(null)
     const { error } = await supabase.from('profiles').update({ status: next }).eq('id', studentId)
-    setSettingStatus(false)
     if (error) {
       setStatusError(error.message)
+      setSettingStatus(false)
       return
     }
+    // Keep the button disabled/"Saving…" through the refresh too — ending
+    // it right after the update resolves left one render where the button
+    // was re-enabled but accountStatus hadn't caught up yet, flashing the
+    // old label before the refreshed one landed.
     await refreshAccountStatus()
+    setSettingStatus(false)
   }
 
   async function reassignMentor(newMentorId: string) {
