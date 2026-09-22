@@ -11,6 +11,7 @@ import type { Profile } from '@/types/database'
 
 interface StudentRow extends Profile {
   mentorName: string | null
+  email: string | null
 }
 
 function useStudents() {
@@ -42,10 +43,18 @@ function useStudents() {
       const mentorNameById = new Map((mentors ?? []).map((m) => [m.id, m.full_name]))
       const mentorIdByStudent = new Map((assignments ?? []).map((a) => [a.student_id, a.mentor_id]))
 
+      // profiles has no email column — it only lives on auth.users, which
+      // the client can't query directly — so this is a separate admin-only
+      // call. Don't let it fail the whole page: the list still loads,
+      // search by email just silently falls back to name-only if it errors.
+      const { data: emailData } = await supabase.functions.invoke('admin-list-emails')
+      const emailById = (emailData?.emails ?? {}) as Record<string, string>
+
       setStudents(
         ((profiles ?? []) as Profile[]).map((p) => ({
           ...p,
           mentorName: mentorNameById.get(mentorIdByStudent.get(p.id) ?? '') ?? null,
+          email: emailById[p.id] ?? null,
         })),
       )
       setLoading(false)
@@ -62,7 +71,12 @@ export default function StudentsListPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return students
-    return students.filter((s) => (s.full_name ?? '').toLowerCase().includes(q) || (s.mentorName ?? '').toLowerCase().includes(q))
+    return students.filter(
+      (s) =>
+        (s.full_name ?? '').toLowerCase().includes(q) ||
+        (s.email ?? '').toLowerCase().includes(q) ||
+        (s.mentorName ?? '').toLowerCase().includes(q),
+    )
   }, [students, query])
 
   if (loading) return <FullPageSpinner />
@@ -77,7 +91,7 @@ export default function StudentsListPage() {
             <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ {students.length} total ]</p>
             <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Students</h1>
           </div>
-          <Field value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students…" className="w-64" />
+          <Field value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or email…" className="w-64" />
         </div>
 
         <div className="mt-6">
@@ -93,7 +107,10 @@ export default function StudentsListPage() {
             <TBody>
               {filtered.map((s) => (
                 <TR key={s.id}>
-                  <TD className="font-bold text-ink">{s.full_name ?? 'Unnamed student'}</TD>
+                  <TD>
+                    <p className="font-bold text-ink">{s.full_name ?? 'Unnamed student'}</p>
+                    {s.email && <p className="mt-0.5 text-[12.5px] text-muted">{s.email}</p>}
+                  </TD>
                   <TD className="text-[13.5px] text-muted">{s.mentorName ?? 'No mentor assigned'}</TD>
                   <TD>
                     {s.payment_status === 'paid' ? (
