@@ -109,7 +109,15 @@ function ProfileForm() {
 }
 
 function PasswordForm() {
-  const { updatePassword } = useAuth()
+  const { user, updatePassword } = useAuth()
+  // A Google-only account (never set a password) has no 'email' identity —
+  // Supabase adds one automatically the first time updateUser({password})
+  // succeeds for such an account, so this flips to the normal "change"
+  // flow from then on. Without this check, the current-password field
+  // below is impossible to fill in truthfully for a Google-only user,
+  // permanently blocking them from ever setting a first password.
+  const hasPassword = user?.identities?.some((i) => i.provider === 'email') ?? true
+
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -132,7 +140,7 @@ function PasswordForm() {
       return
     }
     setSaving(true)
-    const { error } = await updatePassword(newPassword, currentPassword)
+    const { error } = await updatePassword(newPassword, hasPassword ? currentPassword : undefined)
     setSaving(false)
     if (error) {
       setError(error)
@@ -146,17 +154,25 @@ function PasswordForm() {
 
   return (
     <Card className="space-y-4">
-      <p className="meta">Change password</p>
-      <div>
-        <Label htmlFor="current_password">Current password</Label>
-        <Field
-          id="current_password"
-          type="password"
-          autoComplete="current-password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-      </div>
+      <p className="meta">{hasPassword ? 'Change password' : 'Set a password'}</p>
+      {!hasPassword && (
+        <p className="text-[13.5px] text-muted">
+          You signed up with Google and haven't set a password yet. Set one below to also be able to log in with
+          your email and password.
+        </p>
+      )}
+      {hasPassword && (
+        <div>
+          <Label htmlFor="current_password">Current password</Label>
+          <Field
+            id="current_password"
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+        </div>
+      )}
       <div>
         <Label htmlFor="new_password">New password</Label>
         <Field
@@ -188,9 +204,9 @@ function PasswordForm() {
         type="button"
         variant="primary"
         onClick={() => void handleSave()}
-        disabled={saving || !currentPassword || !newPassword || !confirmPassword}
+        disabled={saving || (hasPassword && !currentPassword) || !newPassword || !confirmPassword}
       >
-        {saving ? 'Updating…' : 'Update password'}
+        {saving ? 'Saving…' : hasPassword ? 'Update password' : 'Set password'}
       </Button>
     </Card>
   )
