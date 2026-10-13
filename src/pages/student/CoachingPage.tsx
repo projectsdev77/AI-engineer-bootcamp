@@ -118,6 +118,12 @@ export default function CoachingPage() {
           Pick a mentor to see their availability, then choose a Career &amp; Tech Coaching session or Mock Interview
           Practice. You'll get a confirmation email with the Google Meet link.
         </p>
+        {isPaid && (
+          <p className="mt-2 max-w-2xl text-[14px] text-muted">
+            Booked sessions appear in your email and calendar. To reschedule or cancel, use the links in your
+            confirmation email.
+          </p>
+        )}
 
         {!isPaid ? (
           <Callout tone="info" heading="Included with full access" icon={<LockIcon className="h-3.5 w-3.5" />} className="mt-8 max-w-2xl">

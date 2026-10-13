@@ -137,7 +137,6 @@ function ProfileForm() {
                 </button>
               )}
             </div>
-            <p className="text-[13px] text-muted">JPG, PNG or WebP. Students see it when booking you. Click Save to keep it.</p>
           </div>
         )}
       </div>

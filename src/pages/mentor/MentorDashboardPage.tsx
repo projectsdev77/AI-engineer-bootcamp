@@ -8,6 +8,8 @@ import { useMentorStudents } from '@/hooks/useMentorStudents'
 import { useExceptionQueue } from '@/hooks/useExceptionQueue'
 import { MESSAGES_READ_EVENT } from '@/hooks/useUnreadMessages'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
+import Card from '@/components/ui/Card'
+import StatusPill from '@/components/ui/StatusPill'
 
 function timeAgo(iso: string | null): string {
   if (!iso) return 'never active'
@@ -48,6 +50,51 @@ function useUnreadByStudent() {
   return counts
 }
 
+/**
+ * Bookings live entirely in Cal.com (per the client spec, the app keeps no
+ * booking records), so this only shows whether students can book the mentor
+ * and points to where their sessions actually are.
+ */
+function CoachingCard() {
+  const { profile } = useAuth()
+  const bookable = !!profile?.cal_link
+
+  return (
+    <Card className="mt-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="min-w-0 max-w-xl">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="font-display text-lg font-bold text-ink">1-on-1 coaching</p>
+          {bookable ? (
+            <StatusPill variant="pass">bookable</StatusPill>
+          ) : (
+            <StatusPill variant="locked">not set up</StatusPill>
+          )}
+        </div>
+        <p className="mt-1 text-[14px] text-muted">
+          {bookable
+            ? 'Any paid student can book you from their coaching page. Your sessions are in Cal.com and your calendar, and you get an email for each booking.'
+            : "Students can't book you yet. Add your Cal.com link in Settings to appear on their coaching page."}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-4">
+        {bookable && (
+          <a
+            href="https://app.cal.com/bookings/upcoming"
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-xs font-bold uppercase tracking-wide text-blue-700"
+          >
+            your bookings ↗
+          </a>
+        )}
+        <Link to="/settings" className="font-mono text-xs font-bold uppercase tracking-wide text-blue-700">
+          {bookable ? 'edit in settings →' : 'set up in settings →'}
+        </Link>
+      </div>
+    </Card>
+  )
+}
+
 export default function MentorDashboardPage() {
   const { students, loading, error } = useMentorStudents()
   const { open: openQueueItems } = useExceptionQueue()
@@ -74,6 +121,8 @@ export default function MentorDashboardPage() {
             {openQueueItems.length > 0 && <span className="pill pill-warn">{openQueueItems.length} open</span>}
           </Link>
         </div>
+
+        <CoachingCard />
 
         {error && <p className="mt-4 text-sm font-bold text-fail-ink">{error}</p>}
 
