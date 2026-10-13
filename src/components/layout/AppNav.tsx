@@ -78,7 +78,7 @@ export default function AppNav() {
             </Link>
           )}
           <Link to="/settings" className="flex items-center gap-2 no-underline hover:text-lime">
-            <Avatar name={profile?.full_name} size={26} />
+            <Avatar name={profile?.full_name} src={profile?.avatar_url} size={26} />
             <span className="hidden font-mono text-xs text-paper/80 sm:inline">
               {profile?.full_name?.toLowerCase() ?? 'settings'}
             </span>

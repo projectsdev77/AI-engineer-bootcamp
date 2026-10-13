@@ -12,11 +12,20 @@ import { Button } from '@/components/ui/Button'
 import { Field, Label, TextAreaField, FieldHint } from '@/components/ui/Field'
 import PasswordRequirementsList from '@/components/ui/PasswordRequirementsList'
 import { validatePassword } from '@/lib/passwordPolicy'
+import { normalizeCalLink } from '@/lib/calLink'
 
 function ProfileForm() {
   const { user, profile, refreshProfile } = useAuth()
   const isStudent = profile?.role === 'student'
-  const [form, setForm] = useState({ full_name: '', background: '', weekly_hours_target: '' })
+  const isMentor = profile?.role === 'mentor'
+  const [form, setForm] = useState({
+    full_name: '',
+    background: '',
+    weekly_hours_target: '',
+    title: '',
+    avatar_url: '',
+    cal_link: '',
+  })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,15 +36,35 @@ function ProfileForm() {
         full_name: profile.full_name ?? '',
         background: profile.background ?? '',
         weekly_hours_target: profile.weekly_hours_target != null ? String(profile.weekly_hours_target) : '',
+        title: profile.title ?? '',
+        avatar_url: profile.avatar_url ?? '',
+        cal_link: profile.cal_link ?? '',
       })
     }
   }, [profile])
 
   async function handleSave() {
     if (!user) return
-    setSaving(true)
     setSaved(false)
     setError(null)
+
+    let mentorFields = {}
+    if (isMentor) {
+      const cal = normalizeCalLink(form.cal_link)
+      if (cal.error) {
+        setError(cal.error)
+        return
+      }
+      const photo = form.avatar_url.trim()
+      if (photo && !/^https:\/\//i.test(photo)) {
+        setError('The photo URL must start with https://.')
+        return
+      }
+      mentorFields = { title: form.title.trim() || null, avatar_url: photo || null, cal_link: cal.value }
+      if (cal.value) setForm((f) => ({ ...f, cal_link: cal.value ?? '' }))
+    }
+
+    setSaving(true)
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -46,6 +75,7 @@ function ProfileForm() {
               weekly_hours_target: form.weekly_hours_target ? Number(form.weekly_hours_target) : null,
             }
           : {}),
+        ...mentorFields,
       })
       .eq('id', user.id)
     setSaving(false)
@@ -60,7 +90,7 @@ function ProfileForm() {
   return (
     <Card className="space-y-4">
       <div className="flex items-center gap-4">
-        <Avatar name={form.full_name || profile?.full_name} size={56} />
+        <Avatar name={form.full_name || profile?.full_name} src={isMentor ? form.avatar_url.trim() : null} size={56} />
       </div>
       <div>
         <Label>Email</Label>
@@ -94,6 +124,42 @@ function ProfileForm() {
               className="w-28"
             />
             <FieldHint>Tracked on your dashboard against time you log completing resources.</FieldHint>
+          </div>
+        </>
+      )}
+      {isMentor && (
+        <>
+          <div>
+            <Label htmlFor="title">Title</Label>
+            <Field
+              id="title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="e.g. Senior ML Engineer at Acme"
+            />
+          </div>
+          <div>
+            <Label htmlFor="avatar_url">Photo URL</Label>
+            <Field
+              id="avatar_url"
+              value={form.avatar_url}
+              onChange={(e) => setForm({ ...form, avatar_url: e.target.value })}
+              placeholder="https://…"
+            />
+            <FieldHint>A link to a square photo, e.g. your LinkedIn or GitHub profile picture.</FieldHint>
+          </div>
+          <div>
+            <Label htmlFor="cal_link">Cal.com link</Label>
+            <Field
+              id="cal_link"
+              value={form.cal_link}
+              onChange={(e) => setForm({ ...form, cal_link: e.target.value })}
+              placeholder="https://cal.com/your-name"
+            />
+            <FieldHint>
+              Your profile link, not a single event's link, so students see both session types. Students can book you
+              from the coaching page once this is set.
+            </FieldHint>
           </div>
         </>
       )}

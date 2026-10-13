@@ -17,15 +17,16 @@ export default function Avatar({
   className?: string
 }) {
   // A pasted photo URL can 404 or be hotlink-blocked later; fall back to the
-  // initial rather than showing a broken-image icon.
-  const [failed, setFailed] = useState(false)
+  // initial rather than showing a broken-image icon. Tracked per URL so a
+  // corrected URL (e.g. while typing in Settings) gets a fresh try.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
 
-  if (src && !failed) {
+  if (src && src !== failedSrc) {
     return (
       <img
         src={src}
         alt=""
-        onError={() => setFailed(true)}
+        onError={() => setFailedSrc(src)}
         className={`shrink-0 rounded-full border-2 border-ink object-cover ${className}`}
         style={{ width: size, height: size }}
       />
