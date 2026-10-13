@@ -92,7 +92,7 @@ export default function NewQuestionPage() {
       })
       if (rpcError) throw new Error(rpcError.message)
       window.dispatchEvent(new Event(MESSAGES_READ_EVENT))
-      navigate(`/messages/${id}`, { replace: true })
+      navigate(`/questions/${id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Your question was not sent.')
       setSubmitting(false)
@@ -102,7 +102,7 @@ export default function NewQuestionPage() {
   return (
     <div className="min-h-screen bg-paper">
       <AppNav />
-      <Breadcrumb items={[{ label: 'messages', to: '/messages' }, { label: 'new question' }]} />
+      <Breadcrumb items={[{ label: 'questions', to: '/questions' }, { label: 'new question' }]} />
       <main className="mx-auto max-w-[760px] px-4 py-10 sm:px-6">
         <h1 className="font-display text-[34px] font-bold tracking-[-0.03em] text-ink">New question</h1>
         <p className="mt-1 text-[15px] text-muted">
@@ -192,7 +192,7 @@ export default function NewQuestionPage() {
               <Button type="submit" variant="primary" disabled={submitting}>
                 {submitting ? 'Sending…' : 'Send question'}
               </Button>
-              <LinkButton to="/messages" variant="secondary">
+              <LinkButton to="/questions" variant="secondary">
                 Cancel
               </LinkButton>
             </div>

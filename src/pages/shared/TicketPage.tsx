@@ -74,7 +74,7 @@ function ReassignControl({ ticket, onReassign }: { ticket: TicketSummary; onReas
   )
 }
 
-/** One question thread. Students reach it from /messages, mentors and admins from /questions. */
+/** One question thread, at /questions/:ticketId for every role. */
 export default function TicketPage() {
   const { ticketId } = useParams()
   const { user, profile } = useAuth()
@@ -85,7 +85,7 @@ export default function TicketPage() {
 
   const isStudent = profile?.role === 'student'
   const isAdmin = profile?.role === 'admin'
-  const listPath = isStudent ? '/messages' : '/questions'
+  const listPath = '/questions'
 
   if (loading) return <FullPageSpinner />
 
@@ -149,7 +149,7 @@ export default function TicketPage() {
       <AppNav />
       <Breadcrumb
         items={[
-          { label: isStudent ? 'messages' : 'questions', to: listPath },
+          { label: 'questions', to: listPath },
           { label: ticket.subject.length > 40 ? ticket.subject.slice(0, 40) + '…' : ticket.subject },
         ]}
       />

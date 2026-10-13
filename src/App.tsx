@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
 import { AuthProvider } from '@/context/AuthContext'
-import { RequireAuth, RequireRole } from '@/routes/ProtectedRoute'
+import { FullPageSpinner, RequireAuth, RequireRole } from '@/routes/ProtectedRoute'
 import LandingPage from '@/pages/public/LandingPage'
 import CurriculumPage from '@/pages/public/CurriculumPage'
 import LoginPage from '@/pages/public/LoginPage'
@@ -26,13 +27,25 @@ import CertificatePage from '@/pages/public/CertificatePage'
 import ResetPasswordRequestPage from '@/pages/public/ResetPasswordRequestPage'
 import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
 import SettingsPage from '@/pages/student/SettingsPage'
-import MessagesPage from '@/pages/student/MessagesPage'
+import MyQuestionsPage from '@/pages/student/MyQuestionsPage'
 import CoachingPage from '@/pages/student/CoachingPage'
 import NewQuestionPage from '@/pages/student/NewQuestionPage'
 import PortfolioPage from '@/pages/student/PortfolioPage'
 import TicketPage from '@/pages/shared/TicketPage'
 import QuestionsPage from '@/pages/shared/QuestionsPage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
+
+function QuestionsHome() {
+  const { profile } = useAuth()
+  // Wait for the role, or a student would briefly see the mentor queue.
+  if (!profile) return <FullPageSpinner />
+  return profile.role === 'student' ? <MyQuestionsPage /> : <QuestionsPage />
+}
+
+function LegacyTicketRedirect() {
+  const { ticketId } = useParams()
+  return <Navigate to={`/questions/${ticketId}`} replace />
+}
 
 function App() {
   return (
@@ -55,17 +68,18 @@ function App() {
             <Route path="/weeks/:weekId/assignments/:assignmentId" element={<AssignmentPage />} />
 
             <Route element={<RequireRole roles={['student']} />}>
-              <Route path="/messages" element={<MessagesPage />} />
-              <Route path="/messages/new" element={<NewQuestionPage />} />
-              <Route path="/messages/:ticketId" element={<TicketPage />} />
+              <Route path="/questions/new" element={<NewQuestionPage />} />
               <Route path="/dashboard/coaching" element={<CoachingPage />} />
               <Route path="/dashboard/portfolio" element={<PortfolioPage />} />
             </Route>
 
-            <Route element={<RequireRole roles={['mentor', 'admin']} />}>
-              <Route path="/questions" element={<QuestionsPage />} />
-              <Route path="/questions/:ticketId" element={<TicketPage />} />
-            </Route>
+            {/* One questions area for every role: students get their own inbox, mentors and admins the queue. */}
+            <Route path="/questions" element={<QuestionsHome />} />
+            <Route path="/questions/:ticketId" element={<TicketPage />} />
+            {/* Old /messages links (e.g. in emails already sent) */}
+            <Route path="/messages" element={<Navigate to="/questions" replace />} />
+            <Route path="/messages/new" element={<Navigate to="/questions/new" replace />} />
+            <Route path="/messages/:ticketId" element={<LegacyTicketRedirect />} />
 
             <Route element={<RequireRole roles={['mentor']} />}>
               <Route path="/mentor" element={<MentorDashboardPage />} />

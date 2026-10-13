@@ -40,7 +40,7 @@ export default function AppNav() {
       ? [
           { to: '/dashboard/portfolio', label: 'portfolio' },
           { to: '/dashboard/coaching', label: 'coaching' },
-          { to: '/messages', label: 'messages', badge: unread },
+          { to: '/questions', label: 'questions', badge: unread },
         ]
       : profile?.role === 'mentor'
         ? [

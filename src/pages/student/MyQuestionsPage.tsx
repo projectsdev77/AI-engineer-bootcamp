@@ -5,7 +5,7 @@ import TicketList, { Tabs } from '@/components/messages/TicketList'
 import { useTickets } from '@/hooks/useTickets'
 
 /** Student inbox: one row per question, open ones first by default. */
-export default function MessagesPage() {
+export default function MyQuestionsPage() {
   const { tickets, loading, error } = useTickets()
   const [tab, setTab] = useState<'open' | 'closed'>('open')
 
@@ -19,13 +19,13 @@ export default function MessagesPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ your questions ]</p>
-            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Messages</h1>
+            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Questions</h1>
             <p className="mt-1 max-w-xl text-[15px] text-muted">
               Ask a mentor about anything in the program. Each question gets its own thread, and the first available
               mentor picks it up.
             </p>
           </div>
-          <LinkButton to="/messages/new" variant="primary">
+          <LinkButton to="/questions/new" variant="primary">
             New question
           </LinkButton>
         </div>
@@ -49,7 +49,7 @@ export default function MessagesPage() {
           ) : (
             <TicketList
               tickets={tab === 'open' ? open : closed}
-              basePath="/messages"
+              basePath="/questions"
               perspective="student"
               empty={
                 tab === 'open'

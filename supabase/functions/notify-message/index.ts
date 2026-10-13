@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         subject: `Resolved: ${ticket.subject}`,
         html: `<p>${escapeHtml(closer?.full_name ?? 'Your mentor')} marked your question <strong>${escapeHtml(ticket.subject)}</strong> as resolved.</p>
 <p>You can still read the conversation. If something new comes up, start a new question.</p>
-<p><a href="${SITE_URL}/messages/${ticket.id}">View the conversation</a></p>`,
+<p><a href="${SITE_URL}/questions/${ticket.id}">View the conversation</a></p>`,
       })
     } catch (e) {
       return jsonResponse({ ok: false, error: String(e) }, 200)
@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
         ticket?.subject ? ` <strong>${escapeHtml(ticket.subject)}</strong>` : ''
       }:</p>
 <blockquote>${escapeHtml(message.body)}</blockquote>
-<p><a href="${SITE_URL}/messages/${message.ticket_id}">Open the conversation</a></p>`,
+<p><a href="${SITE_URL}/questions/${message.ticket_id}">Open the conversation</a></p>`,
     })
   } catch (e) {
     return jsonResponse({ ok: false, error: String(e) }, 200)
