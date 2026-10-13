@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -13,6 +13,7 @@ import { Field, Label, TextAreaField, FieldHint } from '@/components/ui/Field'
 import PasswordRequirementsList from '@/components/ui/PasswordRequirementsList'
 import { validatePassword } from '@/lib/passwordPolicy'
 import { normalizeCalLink } from '@/lib/calLink'
+import { uploadAvatar, removeOtherAvatars } from '@/lib/avatarUpload'
 
 function ProfileForm() {
   const { user, profile, refreshProfile } = useAuth()
@@ -29,6 +30,24 @@ function ProfileForm() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  async function handlePhotoPicked(file: File | undefined) {
+    if (!user || !file) return
+    setSaved(false)
+    setError(null)
+    setUploading(true)
+    try {
+      const url = await uploadAvatar(user.id, file)
+      setForm((f) => ({ ...f, avatar_url: url }))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed.')
+    } finally {
+      setUploading(false)
+      if (fileInput.current) fileInput.current.value = ''
+    }
+  }
 
   useEffect(() => {
     if (profile) {
@@ -56,10 +75,6 @@ function ProfileForm() {
         return
       }
       const photo = form.avatar_url.trim()
-      if (photo && !/^https:\/\//i.test(photo)) {
-        setError('The photo URL must start with https://.')
-        return
-      }
       mentorFields = { title: form.title.trim() || null, avatar_url: photo || null, cal_link: cal.value }
       if (cal.value) setForm((f) => ({ ...f, cal_link: cal.value ?? '' }))
     }
@@ -84,13 +99,47 @@ function ProfileForm() {
       return
     }
     setSaved(true)
+    if (isMentor) void removeOtherAvatars(user.id, form.avatar_url.trim() || null)
     await refreshProfile()
   }
 
   return (
     <Card className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Avatar name={form.full_name || profile?.full_name} src={isMentor ? form.avatar_url.trim() : null} size={56} />
+      <div className="flex flex-wrap items-center gap-4">
+        <Avatar name={form.full_name || profile?.full_name} src={isMentor ? form.avatar_url.trim() : null} size={72} />
+        {isMentor && (
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                ref={fileInput}
+                id="avatar_file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={(e) => void handlePhotoPicked(e.target.files?.[0])}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => fileInput.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading…' : form.avatar_url ? 'Change photo' : 'Upload photo'}
+              </Button>
+              {form.avatar_url && !uploading && (
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, avatar_url: '' }))}
+                  className="font-mono text-[11.5px] font-bold uppercase tracking-[0.06em] text-blue-700 hover:underline"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="text-[13px] text-muted">JPG, PNG or WebP. Students see it when booking you. Click Save to keep it.</p>
+          </div>
+        )}
       </div>
       <div>
         <Label>Email</Label>
@@ -137,16 +186,6 @@ function ProfileForm() {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g. Senior ML Engineer at Acme"
             />
-          </div>
-          <div>
-            <Label htmlFor="avatar_url">Photo URL</Label>
-            <Field
-              id="avatar_url"
-              value={form.avatar_url}
-              onChange={(e) => setForm({ ...form, avatar_url: e.target.value })}
-              placeholder="https://…"
-            />
-            <FieldHint>A link to a square photo, e.g. your LinkedIn or GitHub profile picture.</FieldHint>
           </div>
           <div>
             <Label htmlFor="cal_link">Cal.com link</Label>

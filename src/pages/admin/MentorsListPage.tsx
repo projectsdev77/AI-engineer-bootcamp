@@ -175,10 +175,12 @@ function AddMentorForm({ onAdded }: { onAdded: () => void }) {
   )
 }
 
-/** Title, photo and Cal.com link — what students see on /dashboard/coaching. */
+/**
+ * The mentor's Cal.com link — what makes them bookable on /dashboard/coaching.
+ * Photo and title are the mentor's own (set in their Settings); the admin
+ * only manages the booking link, per the client's spec.
+ */
 function CoachingEditor({ mentor, onSaved, onCancel }: { mentor: MentorRow; onSaved: () => void; onCancel: () => void }) {
-  const [title, setTitle] = useState(mentor.title ?? '')
-  const [photoUrl, setPhotoUrl] = useState(mentor.avatar_url ?? '')
   const [calLink, setCalLink] = useState(mentor.cal_link ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -192,17 +194,9 @@ function CoachingEditor({ mentor, onSaved, onCancel }: { mentor: MentorRow; onSa
       setError(cal.error)
       return
     }
-    const photo = photoUrl.trim()
-    if (photo && !/^https:\/\//i.test(photo)) {
-      setError('The photo URL must start with https://.')
-      return
-    }
 
     setSaving(true)
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ title: title.trim() || null, avatar_url: photo || null, cal_link: cal.value })
-      .eq('id', mentor.id)
+    const { error: updateError } = await supabase.from('profiles').update({ cal_link: cal.value }).eq('id', mentor.id)
     setSaving(false)
     if (updateError) {
       setError(updateError.message)
@@ -212,26 +206,8 @@ function CoachingEditor({ mentor, onSaved, onCancel }: { mentor: MentorRow; onSa
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-2 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="space-y-4 py-2">
       <div>
-        <Label htmlFor={`title-${mentor.id}`}>Title</Label>
-        <Field
-          id={`title-${mentor.id}`}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Senior ML Engineer at Acme"
-        />
-      </div>
-      <div>
-        <Label htmlFor={`photo-${mentor.id}`}>Photo URL</Label>
-        <Field
-          id={`photo-${mentor.id}`}
-          value={photoUrl}
-          onChange={(e) => setPhotoUrl(e.target.value)}
-          placeholder="https://…"
-        />
-      </div>
-      <div className="sm:col-span-2">
         <Label htmlFor={`cal-${mentor.id}`}>Cal.com link</Label>
         <Field
           id={`cal-${mentor.id}`}
@@ -241,11 +217,11 @@ function CoachingEditor({ mentor, onSaved, onCancel }: { mentor: MentorRow; onSa
         />
         <p className="mt-1.5 text-[13px] text-muted">
           Their profile link, not a single event's link, so students see both session types. Leave blank to hide them
-          from the coaching page.
+          from the coaching page. Mentors set their own photo and title in Settings.
         </p>
       </div>
-      {error && <p className="text-sm font-bold text-fail-ink sm:col-span-2">{error}</p>}
-      <div className="flex gap-3 sm:col-span-2">
+      {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}
+      <div className="flex gap-3">
         <Button type="submit" variant="primary" size="sm" disabled={saving}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
@@ -324,7 +300,7 @@ export default function MentorsListPage() {
                           onClick={() => setEditingId(editingId === m.id ? null : m.id)}
                           className="font-mono text-[11.5px] font-bold uppercase tracking-[0.06em] text-blue-700 hover:underline"
                         >
-                          {editingId === m.id ? 'Close' : 'Edit'}
+                          {editingId === m.id ? 'Close' : 'Edit link'}
                         </button>
                         <RemoveMentorButton mentor={m} onRemoved={refresh} />
                       </div>
