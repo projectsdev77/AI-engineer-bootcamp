@@ -4,6 +4,7 @@ import StatusPill from '@/components/ui/StatusPill'
 import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
 import { TextAreaField } from '@/components/ui/Field'
+import ProjectLinks from '@/components/assignment/ProjectLinks'
 import { CheckIcon, AlertIcon, MessageIcon } from '@/components/ui/icons'
 
 export default function QueueCard({
@@ -53,7 +54,12 @@ export default function QueueCard({
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {item.content && (
+          {item.repo_url ? (
+            <div className="rounded-card border-2 border-hairline bg-paper p-4">
+              <p className="meta mb-2 text-faint">Project</p>
+              <ProjectLinks repoUrl={item.repo_url} demoUrl={item.demo_url} notes={item.content} />
+            </div>
+          ) : item.content && (
             <div className="rounded-card border-2 border-hairline bg-paper p-4">
               <p className="meta mb-1.5 text-faint">Submission</p>
               <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{item.content}</p>

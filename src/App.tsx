@@ -29,6 +29,7 @@ import SettingsPage from '@/pages/student/SettingsPage'
 import MessagesPage from '@/pages/student/MessagesPage'
 import CoachingPage from '@/pages/student/CoachingPage'
 import NewQuestionPage from '@/pages/student/NewQuestionPage'
+import PortfolioPage from '@/pages/student/PortfolioPage'
 import TicketPage from '@/pages/shared/TicketPage'
 import QuestionsPage from '@/pages/shared/QuestionsPage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
@@ -58,6 +59,7 @@ function App() {
               <Route path="/messages/new" element={<NewQuestionPage />} />
               <Route path="/messages/:ticketId" element={<TicketPage />} />
               <Route path="/dashboard/coaching" element={<CoachingPage />} />
+              <Route path="/dashboard/portfolio" element={<PortfolioPage />} />
             </Route>
 
             <Route element={<RequireRole roles={['mentor', 'admin']} />}>

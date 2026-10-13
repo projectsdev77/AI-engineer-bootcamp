@@ -145,6 +145,38 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
     }
   }
 
+  async function submitProject(project: { repoUrl: string; demoUrl: string; notes: string }) {
+    if (!assignment || !user) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const { data, error } = await supabase
+        .from('submissions')
+        .insert({
+          user_id: user.id,
+          assignment_id: assignment.id,
+          attempt_number: (latest?.attempt_number ?? 0) + 1,
+          repo_url: project.repoUrl,
+          demo_url: project.demoUrl || null,
+          content: project.notes || null,
+          assignment_version: {
+            instructions: assignment.instructions,
+            rubric: assignment.rubric,
+            config: assignment.config,
+          },
+        })
+        .select()
+        .single()
+      if (error) throw error
+      await refresh()
+      void invokeEvaluation(data.id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Submission failed')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function submitQuiz(answers: Record<string, string>) {
     if (!assignment || !user) return
     setSubmitting(true)
@@ -261,6 +293,7 @@ export function useAssignmentDetail(assignmentId: string | undefined) {
     submitting,
     error,
     submitText,
+    submitProject,
     submitQuiz,
     flagForReview,
     refresh,

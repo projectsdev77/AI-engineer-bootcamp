@@ -7,6 +7,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import StatusToggle from '@/components/admin/StatusToggle'
 import ReorderButtons from '@/components/admin/ReorderButtons'
 import SkillsInput from '@/components/admin/SkillsInput'
+import { ASSIGNMENT_TYPE_LABEL, ASSIGNMENT_TYPE_OPTIONS } from '@/lib/assignmentTypes'
 import Card from '@/components/ui/Card'
 import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
@@ -47,7 +48,7 @@ export default function WeekEditorPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [form, setForm] = useState({ title: '', goal: '', summary: '', estimated_hours: '', skills: [] as string[] })
   const [newLessonTitle, setNewLessonTitle] = useState('')
-  const [newAssignment, setNewAssignment] = useState({ title: '', type: 'text' as Assignment['assignment_type'] })
+  const [newAssignment, setNewAssignment] = useState({ title: '', type: 'quiz' as Assignment['assignment_type'] })
 
   const lessons = useAdminCollection<Lesson>('lessons', 'week_id', weekId)
   const assignments = useAdminCollection<Assignment>('assignments', 'week_id', weekId)
@@ -241,7 +242,7 @@ export default function WeekEditorPage() {
                         {assignment.title}
                       </Link>
                       <span className="pill" style={{ background: 'var(--color-ink)', borderColor: 'var(--color-ink)', color: 'var(--color-lime)' }}>
-                        {assignment.assignment_type}
+                        {ASSIGNMENT_TYPE_LABEL[assignment.assignment_type] ?? assignment.assignment_type}
                       </span>
                       <StatusToggle status={assignment.status} onChange={(next) => void assignments.update(assignment.id, { status: next })} />
                       <button
@@ -261,9 +262,11 @@ export default function WeekEditorPage() {
                       const config =
                         newAssignment.type === 'quiz'
                           ? { pass_threshold: 70 }
-                          : newAssignment.type === 'text'
-                            ? { min_words: 150, max_words: 800 }
-                            : { allowed_hosts: [], require_public: true }
+                          : newAssignment.type === 'project'
+                            ? { require_demo: true }
+                            : newAssignment.type === 'text'
+                              ? { min_words: 150, max_words: 800 }
+                              : { allowed_hosts: [], require_public: true }
                       void assignments.create({
                         title: newAssignment.title.trim(),
                         instructions: 'TODO: add instructions',
@@ -271,7 +274,7 @@ export default function WeekEditorPage() {
                         config,
                         status: 'draft',
                       })
-                      setNewAssignment({ title: '', type: 'text' })
+                      setNewAssignment({ title: '', type: newAssignment.type })
                     }}
                     className="flex gap-2 rounded-panel border-2 border-dashed border-disabled p-3"
                   >
@@ -286,9 +289,11 @@ export default function WeekEditorPage() {
                       onChange={(e) => setNewAssignment({ ...newAssignment, type: e.target.value as Assignment['assignment_type'] })}
                       className="field w-auto"
                     >
-                      <option value="text">Text</option>
-                      <option value="url">URL</option>
-                      <option value="quiz">Quiz</option>
+                      {ASSIGNMENT_TYPE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
                     </select>
                     <Button type="submit" variant="primary">
                       Add

@@ -6,6 +6,7 @@ import Callout from '@/components/ui/Callout'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { TextAreaField } from '@/components/ui/Field'
 import { MessageIcon } from '@/components/ui/icons'
+import ProjectLinks from '@/components/assignment/ProjectLinks'
 
 export default function SubmissionResult({
   submission,
@@ -37,7 +38,12 @@ export default function SubmissionResult({
         {submission.final_status === 'pending' && <StatusPill variant="progress">evaluating</StatusPill>}
       </div>
 
-      {submission.content && (
+      {submission.repo_url ? (
+        <div className="mt-4 rounded-card border-2 border-hairline bg-paper p-4">
+          <p className="meta mb-2 text-faint">Project</p>
+          <ProjectLinks repoUrl={submission.repo_url} demoUrl={submission.demo_url} notes={submission.content} />
+        </div>
+      ) : submission.content && (
         <div className="mt-4 rounded-card border-2 border-hairline bg-paper p-4">
           <p className="meta mb-1.5 text-faint">Submission</p>
           <p className="whitespace-pre-wrap text-[14.5px] leading-relaxed text-ink">{submission.content}</p>

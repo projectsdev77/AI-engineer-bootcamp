@@ -172,12 +172,25 @@ async function gradeWithAI(supabase: any, submission: any, assignment: any) {
   const urlFetch: UrlFetchResult | undefined =
     assignment.assignment_type === 'url' ? await fetchUrlContent(submission.content ?? '') : undefined
 
+  // Projects: read the repo (README) and the live demo page side by side.
+  const project =
+    assignment.assignment_type === 'project'
+      ? await (async () => {
+          const [repoFetch, demoFetch] = await Promise.all([
+            fetchUrlContent(submission.repo_url ?? ''),
+            submission.demo_url ? fetchUrlContent(submission.demo_url) : Promise.resolve(undefined),
+          ])
+          return { repoUrl: submission.repo_url ?? '', demoUrl: submission.demo_url ?? null, repoFetch, demoFetch }
+        })()
+      : undefined
+
   const { system, user } = buildGradingPrompt({
     assignmentType: assignment.assignment_type,
     instructions: assignment.instructions,
     rubric: assignment.rubric,
     content: submission.content ?? '',
     urlFetch,
+    project,
   })
 
   let lastError: unknown = null

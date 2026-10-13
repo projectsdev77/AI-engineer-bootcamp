@@ -8,6 +8,7 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
 import { AssignmentIcon, LockIcon } from '@/components/ui/icons'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
+import { ASSIGNMENT_TYPE_LABEL } from '@/lib/assignmentTypes'
 import { useWeekDetail, type AssignmentSummary, type LessonSummary } from '@/hooks/useWeekDetail'
 
 const ASSIGNMENT_STATUS: Record<string, { label: string; variant: StatusVariant }> = {
@@ -67,7 +68,7 @@ function AssignmentRow({ weekId, assignment }: { weekId: string; assignment: Ass
           <div>
             <p className="font-bold text-ink">{assignment.title}</p>
             <p className="font-mono text-[11px] font-bold uppercase tracking-wide text-faint">
-              {assignment.assignment_type}
+              {ASSIGNMENT_TYPE_LABEL[assignment.assignment_type] ?? assignment.assignment_type}
             </p>
           </div>
         </div>

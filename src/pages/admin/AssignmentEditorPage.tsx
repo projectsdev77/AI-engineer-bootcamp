@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import QuizQuestionEditor from '@/components/admin/QuizQuestionEditor'
 import { useAdminCollection } from '@/hooks/useAdminCollection'
-import type { Assignment, QuizQuestion, TextConfig, UrlConfig, QuizConfig } from '@/types/database'
+import { ASSIGNMENT_TYPE_LABEL } from '@/lib/assignmentTypes'
+import type { Assignment, QuizQuestion, TextConfig, UrlConfig, QuizConfig, ProjectConfig } from '@/types/database'
 
 function useAssignment(assignmentId: string | undefined) {
   const [assignment, setAssignment] = useState<Assignment | null>(null)
@@ -110,7 +111,7 @@ export default function AssignmentEditorPage() {
           <>
             <Card className="space-y-4">
               <span className="pill" style={{ background: 'var(--color-ink)', borderColor: 'var(--color-ink)', color: 'var(--color-lime)' }}>
-                {assignment.assignment_type}
+                {ASSIGNMENT_TYPE_LABEL[assignment.assignment_type] ?? assignment.assignment_type}
               </span>
               <div>
                 <Label htmlFor="title">Title</Label>
@@ -179,6 +180,20 @@ export default function AssignmentEditorPage() {
                     onChange={(checked) => setConfig({ ...config, require_public: checked })}
                     label="Require public"
                   />
+                </div>
+              )}
+
+              {assignment.assignment_type === 'project' && (
+                <div>
+                  <Checkbox
+                    checked={(config as unknown as ProjectConfig).require_demo !== false}
+                    onChange={(checked) => setConfig({ ...config, require_demo: checked })}
+                    label="Require a live demo URL"
+                  />
+                  <p className="mt-1.5 text-[13px] text-muted">
+                    Students always submit a GitHub repository and can add notes. Turn this off for projects with nothing
+                    to deploy, like a notebook or a CLI tool.
+                  </p>
                 </div>
               )}
 

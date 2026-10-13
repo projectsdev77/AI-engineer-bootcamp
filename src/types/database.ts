@@ -6,7 +6,7 @@ export type UserRole = 'student' | 'mentor' | 'admin'
 export type AccountStatus = 'active' | 'suspended'
 export type PublishStatus = 'draft' | 'published'
 export type ResourceType = 'video' | 'article' | 'docs' | 'paper' | 'repo' | 'tool' | 'other'
-export type AssignmentType = 'quiz' | 'text' | 'url'
+export type AssignmentType = 'quiz' | 'project' | 'text' | 'url'
 export type EnrollmentStatus = 'active' | 'completed' | 'withdrawn'
 export type UnlockSource = 'system' | 'admin'
 export type EvalStatus = 'pending' | 'processing' | 'complete' | 'failed' | 'needs_review'
@@ -111,6 +111,10 @@ export interface UrlConfig {
   allowed_hosts: string[]
   require_public: boolean
 }
+export interface ProjectConfig {
+  /** Off for projects with nothing to deploy (a notebook, a CLI). Missing means required. */
+  require_demo?: boolean
+}
 
 export interface Assignment {
   id: string
@@ -120,7 +124,7 @@ export interface Assignment {
   instructions: string
   assignment_type: AssignmentType
   rubric: string | null
-  config: QuizConfig | TextConfig | UrlConfig | Record<string, never>
+  config: QuizConfig | TextConfig | UrlConfig | ProjectConfig | Record<string, never>
   status: PublishStatus
   created_at: string
 }
@@ -181,7 +185,11 @@ export interface Submission {
   assignment_id: string
   attempt_number: number
   submitted_at: string
+  /** Free text for `text`, the URL for `url`, the student's notes for `project`, null for `quiz`. */
   content: string | null
+  /** Project submissions only. */
+  repo_url: string | null
+  demo_url: string | null
   quiz_score: number | null
   evaluation_status: EvalStatus
   ai_feedback: string | null
@@ -294,4 +302,23 @@ export interface EmailLogEntry {
   user_id: string
   email_type: EmailType
   sent_at: string
+}
+
+export type PortfolioState = 'locked' | 'not_started' | 'in_review' | 'needs_work' | 'completed'
+
+/** A row from get_portfolio(): one curriculum project and where the student is with it. */
+export interface PortfolioItem {
+  assignment_id: string
+  title: string
+  instructions: string
+  week_id: string
+  week_position: number
+  week_title: string
+  week_skills: string[]
+  state: PortfolioState
+  /** Only set once completed. */
+  repo_url: string | null
+  demo_url: string | null
+  notes: string | null
+  completed_at: string | null
 }

@@ -95,12 +95,23 @@ export type UrlFetchResult =
   | { ok: true; text: string; sourceLabel: string; finalUrl?: string }
   | { ok: false; error: string }
 
+/** Describes one fetched link for the project prompt. */
+function describeFetch(label: string, url: string, fetched: UrlFetchResult | undefined): string {
+  if (!fetched) return `${label}: ${url} (not fetched — judge from the URL alone)`
+  if (!fetched.ok) {
+    return `${label}: ${url}\nCould not be verified just now: ${fetched.error}. This usually means the link is broken, private, or requires login.`
+  }
+  const redirect = fetched.finalUrl && fetched.finalUrl !== url ? ` (redirected to ${fetched.finalUrl})` : ''
+  return `${label}: ${url}${redirect}\nRetrieved content (${fetched.sourceLabel}), fetched just now:\n\"\"\"\n${fetched.text}\n\"\"\"`
+}
+
 export function buildGradingPrompt(params: {
-  assignmentType: 'text' | 'url'
+  assignmentType: 'text' | 'url' | 'project'
   instructions: string
   rubric: string | null
   content: string
   urlFetch?: UrlFetchResult
+  project?: { repoUrl: string; demoUrl: string | null; repoFetch?: UrlFetchResult; demoFetch?: UrlFetchResult }
 }): { system: string; user: string } {
   const system = `You are grading a student assignment for a self-paced AI engineering bootcamp. Be constructive, specific, and honest — this feedback is shown directly to the student. Base your verdict on the rubric, not on how much effort the submission looks like it took.
 
@@ -111,7 +122,19 @@ Rubric:
 ${params.rubric ?? 'Use your judgment based on the instructions above.'}`
 
   let user: string
-  if (params.assignmentType === 'text') {
+  if (params.assignmentType === 'project' && params.project) {
+    const p = params.project
+    user = `The student submitted a project.
+
+${describeFetch('GitHub repository', p.repoUrl, p.repoFetch)}
+
+${p.demoUrl ? describeFetch('Live demo', p.demoUrl, p.demoFetch) : 'Live demo: none provided.'}
+
+Student's description:
+${params.content || '(none)'}
+
+Evaluate the actual retrieved repository and demo content against the rubric and instructions above — not just the URLs or the description. If the repository or demo can't be verified, or looks unrelated to the assignment, lean toward "needs_work" and tell the student exactly what to fix (e.g. "make the repository public", "the demo link returns an error").`
+  } else if (params.assignmentType === 'text') {
     user = `Student's submission:
 
 ${params.content}`

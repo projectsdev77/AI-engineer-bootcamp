@@ -15,9 +15,11 @@ import { useWeekDetail } from '@/hooks/useWeekDetail'
 import QuizForm from '@/components/assignment/QuizForm'
 import TextForm from '@/components/assignment/TextForm'
 import UrlForm from '@/components/assignment/UrlForm'
+import ProjectForm from '@/components/assignment/ProjectForm'
+import { ASSIGNMENT_TYPE_LABEL } from '@/lib/assignmentTypes'
+import type { ProjectConfig } from '@/types/database'
 import SubmissionResult from '@/components/assignment/SubmissionResult'
 
-const TYPE_LABEL: Record<string, string> = { quiz: 'Quiz', text: 'Text', url: 'URL' }
 
 export default function AssignmentPage() {
   const { assignmentId, weekId } = useParams()
@@ -32,6 +34,7 @@ export default function AssignmentPage() {
     submitting,
     error,
     submitText,
+    submitProject,
     submitQuiz,
     flagForReview,
     refresh,
@@ -63,7 +66,7 @@ export default function AssignmentPage() {
           <>
             <div className="flex flex-wrap items-center gap-3">
               <span className="pill" style={{ background: 'var(--color-ink)', borderColor: 'var(--color-ink)', color: 'var(--color-lime)' }}>
-                {TYPE_LABEL[assignment.assignment_type] ?? assignment.assignment_type}
+                {ASSIGNMENT_TYPE_LABEL[assignment.assignment_type] ?? assignment.assignment_type}
               </span>
               {assignment.assignment_type === 'text' && (
                 <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-muted">
@@ -73,6 +76,11 @@ export default function AssignmentPage() {
               {assignment.assignment_type === 'url' && urlConfig(assignment).allowed_hosts?.length > 0 && (
                 <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-muted">
                   accepted: {urlConfig(assignment).allowed_hosts.join(', ')}
+                </span>
+              )}
+              {assignment.assignment_type === 'project' && (
+                <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-muted">
+                  repo{(assignment.config as ProjectConfig).require_demo !== false ? ' + live demo' : ''} · goes in your portfolio
                 </span>
               )}
               {assignment.assignment_type === 'quiz' && (
@@ -103,6 +111,13 @@ export default function AssignmentPage() {
                 )}
                 {assignment.assignment_type === 'url' && (
                   <UrlForm config={urlConfig(assignment)} disabled={formDisabled} onSubmit={submitText} />
+                )}
+                {assignment.assignment_type === 'project' && (
+                  <ProjectForm
+                    config={assignment.config as ProjectConfig}
+                    disabled={formDisabled}
+                    onSubmit={(p) => void submitProject(p)}
+                  />
                 )}
               </div>
             )}
