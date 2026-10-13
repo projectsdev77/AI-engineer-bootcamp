@@ -28,6 +28,9 @@ import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
 import SettingsPage from '@/pages/student/SettingsPage'
 import MessagesPage from '@/pages/student/MessagesPage'
 import CoachingPage from '@/pages/student/CoachingPage'
+import NewQuestionPage from '@/pages/student/NewQuestionPage'
+import TicketPage from '@/pages/shared/TicketPage'
+import QuestionsPage from '@/pages/shared/QuestionsPage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
 
 function App() {
@@ -52,7 +55,14 @@ function App() {
 
             <Route element={<RequireRole roles={['student']} />}>
               <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/messages/new" element={<NewQuestionPage />} />
+              <Route path="/messages/:ticketId" element={<TicketPage />} />
               <Route path="/dashboard/coaching" element={<CoachingPage />} />
+            </Route>
+
+            <Route element={<RequireRole roles={['mentor', 'admin']} />}>
+              <Route path="/questions" element={<QuestionsPage />} />
+              <Route path="/questions/:ticketId" element={<TicketPage />} />
             </Route>
 
             <Route element={<RequireRole roles={['mentor']} />}>

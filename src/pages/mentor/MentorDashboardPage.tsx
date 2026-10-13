@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import AppNav from '@/components/layout/AppNav'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useMentorStudents } from '@/hooks/useMentorStudents'
 import { useExceptionQueue } from '@/hooks/useExceptionQueue'
-import { MESSAGES_READ_EVENT } from '@/hooks/useUnreadMessages'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import Card from '@/components/ui/Card'
 import StatusPill from '@/components/ui/StatusPill'
@@ -17,37 +14,6 @@ function timeAgo(iso: string | null): string {
   if (days <= 0) return 'active today'
   if (days === 1) return 'active yesterday'
   return `active ${days} days ago`
-}
-
-/** Unread message count per assigned student — which one to check, not just that one did. */
-function useUnreadByStudent() {
-  const { user } = useAuth()
-  const [counts, setCounts] = useState<Map<string, number>>(new Map())
-
-  const refresh = useCallback(async () => {
-    if (!user) return
-    const { data } = await supabase.from('messages').select('student_id').neq('sender_id', user.id).is('read_at', null)
-    const map = new Map<string, number>()
-    for (const row of data ?? []) {
-      map.set(row.student_id, (map.get(row.student_id) ?? 0) + 1)
-    }
-    setCounts(map)
-  }, [user])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  // Catches reading a student's thread without leaving this page mounted
-  // (e.g. a future embedded thread view) — clears the badge right away
-  // instead of only on the next navigation back to this page.
-  useEffect(() => {
-    const handler = () => void refresh()
-    window.addEventListener(MESSAGES_READ_EVENT, handler)
-    return () => window.removeEventListener(MESSAGES_READ_EVENT, handler)
-  }, [refresh])
-
-  return counts
 }
 
 /**
@@ -98,7 +64,6 @@ function CoachingCard() {
 export default function MentorDashboardPage() {
   const { students, loading, error } = useMentorStudents()
   const { open: openQueueItems } = useExceptionQueue()
-  const unreadByStudent = useUnreadByStudent()
 
   if (loading) return <FullPageSpinner />
 
@@ -141,11 +106,6 @@ export default function MentorDashboardPage() {
                   <TD className="font-bold text-ink">
                     <span className="flex items-center gap-2">
                       {student.full_name ?? 'Unnamed student'}
-                      {(unreadByStudent.get(student.id) ?? 0) > 0 && (
-                        <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-fail px-1 font-mono text-[10px] font-bold leading-none text-white">
-                          {unreadByStudent.get(student.id)}
-                        </span>
-                      )}
                     </span>
                   </TD>
                   <TD className="font-mono text-[12px] text-muted">{timeAgo(student.last_active_at)}</TD>

@@ -6,7 +6,6 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import Card from '@/components/ui/Card'
 import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
-import MessageThread from '@/components/messages/MessageThread'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
 import { useWeeklyHours } from '@/hooks/useWeeklyHours'
@@ -175,11 +174,6 @@ export default function StudentDetailPage() {
               </Card>
             ))}
           </div>
-        </section>
-
-        <section className="mt-9">
-          <p className="meta">Messages</p>
-          <div className="mt-3">{studentId && <MessageThread studentId={studentId} />}</div>
         </section>
 
         <Link to="/mentor" className="mt-8 inline-block font-mono text-xs font-bold uppercase tracking-wide text-blue-700">

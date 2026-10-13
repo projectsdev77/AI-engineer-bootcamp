@@ -2,7 +2,10 @@
 // Invoked by the client after inserting a message. Per spec 4 (SHOULD
 // HAVE): "Email notification when a mentor replies" — one direction only,
 // so a message where the sender IS the student (i.e. the student wrote to
-// their own thread) is a no-op here.
+// their own question) is a no-op here.
+//
+// Also invoked with { closedTicketId } after a mentor resolves a question,
+// to tell the student it was closed.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { escapeHtml, sendEmail } from '../_shared/resend.ts'
 import { corsHeaders, handlePreflight } from '../_shared/cors.ts'
@@ -23,14 +26,51 @@ Deno.serve(async (req) => {
   if (preflight) return preflight
 
   let messageId: string | undefined
+  let closedTicketId: string | undefined
   try {
-    ;({ messageId } = await req.json())
+    ;({ messageId, closedTicketId } = await req.json())
   } catch {
     return jsonResponse({ error: 'Invalid JSON body' }, 400)
   }
-  if (!messageId) return jsonResponse({ error: 'messageId is required' }, 400)
+  if (!messageId && !closedTicketId) {
+    return jsonResponse({ error: 'messageId or closedTicketId is required' }, 400)
+  }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+  if (closedTicketId) {
+    const { data: ticket } = await supabase
+      .from('tickets')
+      .select('id, student_id, subject, status, closed_at, closed_by')
+      .eq('id', closedTicketId)
+      .single()
+    // Only for a question closed in the last few minutes, so replaying the
+    // call can't be used to send the email over and over.
+    const recentlyClosed =
+      ticket?.status === 'closed' && ticket.closed_at && Date.now() - new Date(ticket.closed_at).getTime() < 10 * 60_000
+    if (!ticket || !recentlyClosed) return jsonResponse({ ok: true, skipped: 'not_recently_closed' })
+
+    const [{ data: authUser }, { data: closer }] = await Promise.all([
+      supabase.auth.admin.getUserById(ticket.student_id),
+      ticket.closed_by
+        ? supabase.from('profiles').select('full_name').eq('id', ticket.closed_by).single()
+        : Promise.resolve({ data: null }),
+    ])
+    const studentEmail = authUser?.user?.email
+    if (!studentEmail) return jsonResponse({ error: 'could not resolve student email' }, 404)
+    try {
+      await sendEmail({
+        to: studentEmail,
+        subject: `Resolved: ${ticket.subject}`,
+        html: `<p>${escapeHtml(closer?.full_name ?? 'Your mentor')} marked your question <strong>${escapeHtml(ticket.subject)}</strong> as resolved.</p>
+<p>You can still read the conversation. If something new comes up, start a new question.</p>
+<p><a href="${SITE_URL}/messages/${ticket.id}">View the conversation</a></p>`,
+      })
+    } catch (e) {
+      return jsonResponse({ ok: false, error: String(e) }, 200)
+    }
+    return jsonResponse({ ok: true })
+  }
 
   const { data: message, error } = await supabase
     .from('messages')
@@ -41,14 +81,15 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'message not found' }, 404)
   }
 
-  // Student messaging their own thread doesn't need a notification.
-  if (message.sender_id === message.student_id) {
+  // Student messaging their own question doesn't need a notification.
+  if (!message.sender_id || message.sender_id === message.student_id) {
     return jsonResponse({ ok: true, skipped: 'sender_is_student' })
   }
 
-  const [{ data: authUser }, { data: mentorProfile }] = await Promise.all([
+  const [{ data: authUser }, { data: mentorProfile }, { data: ticket }] = await Promise.all([
     supabase.auth.admin.getUserById(message.student_id),
     supabase.from('profiles').select('full_name').eq('id', message.sender_id).single(),
+    supabase.from('tickets').select('subject').eq('id', message.ticket_id).single(),
   ])
   const studentEmail = authUser?.user?.email
   if (!studentEmail) {
@@ -58,10 +99,12 @@ Deno.serve(async (req) => {
   try {
     await sendEmail({
       to: studentEmail,
-      subject: 'New message from your mentor',
-      html: `<p>${escapeHtml(mentorProfile?.full_name ?? 'Your mentor')} sent you a message:</p>
+      subject: ticket?.subject ? `New reply: ${ticket.subject}` : 'New message from your mentor',
+      html: `<p>${escapeHtml(mentorProfile?.full_name ?? 'Your mentor')} replied to your question${
+        ticket?.subject ? ` <strong>${escapeHtml(ticket.subject)}</strong>` : ''
+      }:</p>
 <blockquote>${escapeHtml(message.body)}</blockquote>
-<p><a href="${SITE_URL}/dashboard">Reply on your dashboard</a></p>`,
+<p><a href="${SITE_URL}/messages/${message.ticket_id}">Open the conversation</a></p>`,
     })
   } catch (e) {
     return jsonResponse({ ok: false, error: String(e) }, 200)

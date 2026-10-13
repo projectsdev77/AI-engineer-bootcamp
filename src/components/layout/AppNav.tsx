@@ -16,7 +16,7 @@ function UnreadBadge({ count }: { count: number }) {
 export default function AppNav() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const unreadMessages = useUnreadMessages()
+  const { unread, unclaimed } = useUnreadMessages()
 
   // Navigate to the landing page ourselves rather than letting
   // ProtectedRoute's own redirect fire: that redirect attaches the current
@@ -62,14 +62,19 @@ export default function AppNav() {
               </Link>
               <Link to="/messages" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
                 messages
-                <UnreadBadge count={unreadMessages} />
+                <UnreadBadge count={unread} />
               </Link>
             </>
           )}
           {profile?.role === 'mentor' && (
-            <Link to="/mentor" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
+            <Link to="/mentor" className="font-mono text-xs text-paper no-underline hover:text-lime">
               your students
-              <UnreadBadge count={unreadMessages} />
+            </Link>
+          )}
+          {(profile?.role === 'mentor' || profile?.role === 'admin') && (
+            <Link to="/questions" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
+              questions
+              <UnreadBadge count={unread + unclaimed} />
             </Link>
           )}
           {profile?.role === 'admin' && (

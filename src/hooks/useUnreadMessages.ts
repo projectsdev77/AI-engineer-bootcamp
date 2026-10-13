@@ -3,39 +3,30 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 
-/** Dispatched by useMessageThread right after it marks messages read, so the badge can clear immediately. */
+/** Dispatched after messages are marked read or a ticket changes, so the nav badge can update immediately. */
 export const MESSAGES_READ_EVENT = 'messages-read'
 
 /**
- * Count of messages waiting on the current user, from the other side of
- * whichever thread(s) they can see. Works unmodified for either role: RLS's
- * messages_select already scopes visible rows to a student's own thread, or
- * a mentor's assigned students' threads — so "sender isn't me, unread" is
- * exactly the right filter regardless of which one you are.
+ * Nav badge counts for the question inbox: unread replies in the caller's
+ * own conversations, and (for mentors/admins) questions waiting in the
+ * shared queue.
  *
- * Re-checks on route change (catches visiting a thread on a fresh
- * navigation) and on MESSAGES_READ_EVENT (catches reading a thread that
- * was already open, e.g. new messages arriving via useMessageThread's own
- * refresh) — without the latter the badge would sit stale until whatever
- * navigation happened to come next, instead of clearing right away like a
- * normal messaging app.
+ * Re-checks on route change and on MESSAGES_READ_EVENT, so reading a
+ * thread clears the badge right away instead of on the next navigation.
  */
 export function useUnreadMessages() {
   const { user } = useAuth()
   const location = useLocation()
-  const [count, setCount] = useState(0)
+  const [counts, setCounts] = useState({ unread: 0, unclaimed: 0 })
 
   const refresh = useCallback(async () => {
     if (!user) {
-      setCount(0)
+      setCounts({ unread: 0, unclaimed: 0 })
       return
     }
-    const { count: c } = await supabase
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .neq('sender_id', user.id)
-      .is('read_at', null)
-    setCount(c ?? 0)
+    const { data } = await supabase.rpc('ticket_badge_counts')
+    const row = (data as { unread: number; unclaimed: number }[] | null)?.[0]
+    setCounts({ unread: row?.unread ?? 0, unclaimed: row?.unclaimed ?? 0 })
   }, [user])
 
   useEffect(() => {
@@ -49,5 +40,5 @@ export function useUnreadMessages() {
     return () => window.removeEventListener(MESSAGES_READ_EVENT, handler)
   }, [refresh])
 
-  return count
+  return counts
 }

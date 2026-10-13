@@ -221,14 +221,48 @@ export interface MentorAssignment {
   is_active: boolean
 }
 
+export interface MessageAttachment {
+  /** Storage path in the message-attachments bucket: `<ticket id>/<file>`. */
+  path: string
+  name: string
+  size: number
+  type: string
+}
+
 export interface Message {
   id: string
+  ticket_id: string
   student_id: string
-  sender_id: string
+  /** Null once the sender's account has been deleted. */
+  sender_id: string | null
   submission_id: string | null
   body: string
+  attachments: MessageAttachment[]
   read_at: string | null
   created_at: string
+}
+
+export type TicketStatus = 'open' | 'closed'
+
+/** A row from list_tickets(): a ticket plus the names the caller's RLS can't read directly. */
+export interface TicketSummary {
+  id: string
+  student_id: string
+  student_name: string | null
+  student_avatar_url: string | null
+  subject: string
+  context_label: string
+  status: TicketStatus
+  claimed_by: string | null
+  claimed_by_name: string | null
+  claimed_by_avatar_url: string | null
+  claimed_by_title: string | null
+  claimed_at: string | null
+  closed_at: string | null
+  last_message_at: string
+  created_at: string
+  unread_count: number
+  is_my_student: boolean
 }
 
 export interface CertificateTemplate {
