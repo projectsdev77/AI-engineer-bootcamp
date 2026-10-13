@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import PublicNav from '@/components/layout/PublicNav'
 import { LinkButton } from '@/components/ui/Button'
+
+/** Length of the program, as promised in the copy. Weeks beyond those published are shown as coming soon. */
+const TOTAL_WEEKS = 12
 import { supabase } from '@/lib/supabase'
 
 interface PublicWeek {
@@ -77,6 +80,23 @@ export default function CurriculumPage() {
                 </div>
               </li>
             ))}
+            {/* Only published weeks are listed; without this, three weeks can read as the whole program. */}
+            {weeks.length > 0 && weeks.length < TOTAL_WEEKS && (
+              <li className="flex items-start gap-4 rounded-panel border-2 border-dashed border-disabled p-5">
+                <span className="flex h-10 shrink-0 items-center justify-center rounded-[10px] border-2 border-dashed border-disabled px-2 font-mono text-sm font-bold text-faint">
+                  {String(weeks.length + 1).padStart(2, '0')}–{TOTAL_WEEKS}
+                </span>
+                <div>
+                  <h2 className="font-display text-lg font-bold text-muted">
+                    {TOTAL_WEEKS - weeks.length} more weeks on the way
+                  </h2>
+                  <p className="mt-1 text-[14.5px] text-muted">
+                    The program runs {TOTAL_WEEKS} weeks. New weeks are published here as they're finalized, and enrolled
+                    students get each one as soon as it's released.
+                  </p>
+                </div>
+              </li>
+            )}
             {weeks.length === 0 && (
               <p className="font-mono text-xs font-bold uppercase tracking-wide text-muted">
                 Curriculum is being finalized — check back soon.
