@@ -7,8 +7,8 @@ import { CheckIcon } from '@/components/ui/icons'
  * it is passed (all lessons done, all assignments passed); skills spanning
  * several weeks show how many of those weeks are done.
  */
-export default function SkillsCard({ targetUserId, heading = 'Your skills' }: { targetUserId?: string; heading?: string }) {
-  const { skills, loading } = useSkillProgress(targetUserId)
+export default function SkillsCard() {
+  const { skills, loading } = useSkillProgress()
   if (loading || skills.length === 0) return null
 
   const masteredCount = skills.filter((s) => s.mastered).length
@@ -19,7 +19,7 @@ export default function SkillsCard({ targetUserId, heading = 'Your skills' }: { 
   return (
     <div className="card">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="meta">{heading}</p>
+        <p className="meta">Your skills</p>
         <p className="font-mono text-[11px] font-bold text-muted">
           {masteredCount}/{skills.length} mastered
         </p>
