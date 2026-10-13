@@ -119,10 +119,14 @@ export default function CoachingPage() {
           Practice. You'll get a confirmation email with the Google Meet link.
         </p>
         {isPaid && (
-          <p className="mt-2 max-w-2xl text-[14px] text-muted">
-            Booked sessions appear in your email and calendar. To reschedule or cancel, use the links in your
-            confirmation email.
-          </p>
+          <Callout
+            tone="info"
+            heading="This page is for booking only"
+            className="mt-6 max-w-2xl"
+          >
+            Your booked sessions won't show up here. Find them in your confirmation email and calendar, and use the
+            links in that email to reschedule or cancel.
+          </Callout>
         )}
 
         {!isPaid ? (
