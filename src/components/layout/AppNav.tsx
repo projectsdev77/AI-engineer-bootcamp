@@ -56,10 +56,15 @@ export default function AppNav() {
         </Link>
         <div className="flex items-center gap-5">
           {profile?.role === 'student' && (
-            <Link to="/messages" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
-              messages
-              <UnreadBadge count={unreadMessages} />
-            </Link>
+            <>
+              <Link to="/dashboard/coaching" className="font-mono text-xs text-paper no-underline hover:text-lime">
+                coaching
+              </Link>
+              <Link to="/messages" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">
+                messages
+                <UnreadBadge count={unreadMessages} />
+              </Link>
+            </>
           )}
           {profile?.role === 'mentor' && (
             <Link to="/mentor" className="flex items-center gap-1.5 font-mono text-xs text-paper no-underline hover:text-lime">

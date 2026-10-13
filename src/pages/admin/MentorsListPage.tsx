@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Fragment, useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
 import AdminNav from '@/components/layout/AdminNav'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import { Field, Label } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
+import Avatar from '@/components/ui/Avatar'
 import Callout from '@/components/ui/Callout'
 import StatusPill from '@/components/ui/StatusPill'
 import { AlertIcon } from '@/components/ui/icons'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { functionErrorMessage } from '@/lib/functionsError'
+import { normalizeCalLink } from '@/lib/calLink'
 import type { Profile } from '@/types/database'
 
 interface MentorRow extends Profile {
@@ -173,8 +175,97 @@ function AddMentorForm({ onAdded }: { onAdded: () => void }) {
   )
 }
 
+/** Title, photo and Cal.com link — what students see on /dashboard/coaching. */
+function CoachingEditor({ mentor, onSaved, onCancel }: { mentor: MentorRow; onSaved: () => void; onCancel: () => void }) {
+  const [title, setTitle] = useState(mentor.title ?? '')
+  const [photoUrl, setPhotoUrl] = useState(mentor.avatar_url ?? '')
+  const [calLink, setCalLink] = useState(mentor.cal_link ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError(null)
+
+    const cal = normalizeCalLink(calLink)
+    if (cal.error) {
+      setError(cal.error)
+      return
+    }
+    const photo = photoUrl.trim()
+    if (photo && !/^https:\/\//i.test(photo)) {
+      setError('The photo URL must start with https://.')
+      return
+    }
+
+    setSaving(true)
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ title: title.trim() || null, avatar_url: photo || null, cal_link: cal.value })
+      .eq('id', mentor.id)
+    setSaving(false)
+    if (updateError) {
+      setError(updateError.message)
+      return
+    }
+    onSaved()
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-4 py-2 sm:grid-cols-2">
+      <div>
+        <Label htmlFor={`title-${mentor.id}`}>Title</Label>
+        <Field
+          id={`title-${mentor.id}`}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Senior ML Engineer at Acme"
+        />
+      </div>
+      <div>
+        <Label htmlFor={`photo-${mentor.id}`}>Photo URL</Label>
+        <Field
+          id={`photo-${mentor.id}`}
+          value={photoUrl}
+          onChange={(e) => setPhotoUrl(e.target.value)}
+          placeholder="https://…"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <Label htmlFor={`cal-${mentor.id}`}>Cal.com link</Label>
+        <Field
+          id={`cal-${mentor.id}`}
+          value={calLink}
+          onChange={(e) => setCalLink(e.target.value)}
+          placeholder="https://cal.com/their-name"
+        />
+        <p className="mt-1.5 text-[13px] text-muted">
+          Their profile link, not a single event's link, so students see both session types. Leave blank to hide them
+          from the coaching page.
+        </p>
+      </div>
+      {error && <p className="text-sm font-bold text-fail-ink sm:col-span-2">{error}</p>}
+      <div className="flex gap-3 sm:col-span-2">
+        <Button type="submit" variant="primary" size="sm" disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function CoachingPill({ mentor }: { mentor: MentorRow }) {
+  if (!mentor.cal_link) return <StatusPill variant="locked">no Cal.com link</StatusPill>
+  if (mentor.pending) return <StatusPill variant="warn">after invite accepted</StatusPill>
+  return <StatusPill variant="pass">bookable</StatusPill>
+}
+
 export default function MentorsListPage() {
   const { mentors, loading, refresh } = useMentors()
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   if (loading) return <FullPageSpinner />
 
@@ -198,25 +289,62 @@ export default function MentorsListPage() {
                 <TH>Mentor</TH>
                 <TH>Status</TH>
                 <TH>Active students</TH>
+                <TH>Coaching</TH>
                 <TH />
               </TR>
             </THead>
             <TBody>
               {mentors.map((m) => (
-                <TR key={m.id}>
-                  <TD className="font-bold text-ink">{m.full_name ?? 'Unnamed mentor'}</TD>
-                  <TD>
-                    {m.pending ? (
-                      <StatusPill variant="warn">pending invite</StatusPill>
-                    ) : (
-                      <StatusPill variant="pass">active</StatusPill>
-                    )}
-                  </TD>
-                  <TD className="text-[13.5px] text-muted">{m.activeStudentCount}</TD>
-                  <TD className="text-right">
-                    <RemoveMentorButton mentor={m} onRemoved={refresh} />
-                  </TD>
-                </TR>
+                <Fragment key={m.id}>
+                  <TR>
+                    <TD>
+                      <div className="flex items-center gap-3">
+                        <Avatar name={m.full_name} src={m.avatar_url} size={36} />
+                        <div className="min-w-0">
+                          <p className="font-bold text-ink">{m.full_name ?? 'Unnamed mentor'}</p>
+                          {m.title && <p className="text-[12.5px] text-muted">{m.title}</p>}
+                        </div>
+                      </div>
+                    </TD>
+                    <TD>
+                      {m.pending ? (
+                        <StatusPill variant="warn">pending invite</StatusPill>
+                      ) : (
+                        <StatusPill variant="pass">active</StatusPill>
+                      )}
+                    </TD>
+                    <TD className="text-[13.5px] text-muted">{m.activeStudentCount}</TD>
+                    <TD>
+                      <CoachingPill mentor={m} />
+                    </TD>
+                    <TD className="text-right">
+                      <div className="flex items-start justify-end gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(editingId === m.id ? null : m.id)}
+                          className="font-mono text-[11.5px] font-bold uppercase tracking-[0.06em] text-blue-700 hover:underline"
+                        >
+                          {editingId === m.id ? 'Close' : 'Edit'}
+                        </button>
+                        <RemoveMentorButton mentor={m} onRemoved={refresh} />
+                      </div>
+                    </TD>
+                  </TR>
+                  {editingId === m.id && (
+                    <TR>
+                      <TD colSpan={5}>
+                        <CoachingEditor
+                          mentor={m}
+                          onCancel={() => setEditingId(null)}
+                          onSaved={() => {
+                            setEditingId(null)
+                            void refresh()
+                          }}
+                        />
+                      </TD>
+                    </TR>
+                  )}
+                </Fragment>
               ))}
             </TBody>
           </Table>

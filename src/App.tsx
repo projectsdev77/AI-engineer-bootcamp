@@ -27,6 +27,7 @@ import ResetPasswordRequestPage from '@/pages/public/ResetPasswordRequestPage'
 import ResetPasswordConfirmPage from '@/pages/public/ResetPasswordConfirmPage'
 import SettingsPage from '@/pages/student/SettingsPage'
 import MessagesPage from '@/pages/student/MessagesPage'
+import CoachingPage from '@/pages/student/CoachingPage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
 
             <Route element={<RequireRole roles={['student']} />}>
               <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/dashboard/coaching" element={<CoachingPage />} />
             </Route>
 
             <Route element={<RequireRole roles={['mentor']} />}>

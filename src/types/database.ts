@@ -33,7 +33,18 @@ export interface Profile {
   payment_status: PaymentStatus
   paid_at: string | null
   payment_note: string | null
+  title: string | null
+  cal_link: string | null
   created_at: string
+}
+
+/** One row of list_coaching_mentors() — public fields only. */
+export interface CoachingMentor {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  title: string | null
+  cal_link: string
 }
 
 export interface Track {
