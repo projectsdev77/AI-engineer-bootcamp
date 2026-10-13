@@ -91,8 +91,8 @@ export default function CurriculumPage() {
                     {TOTAL_WEEKS - weeks.length} more weeks on the way
                   </h2>
                   <p className="mt-1 text-[14.5px] text-muted">
-                    The program runs {TOTAL_WEEKS} weeks. New weeks are published here as they're finalized, and enrolled
-                    students get each one as soon as it's released.
+                    New weeks are published here as they're finalized, and enrolled students get each one as soon as it's
+                    released.
                   </p>
                 </div>
               </li>
