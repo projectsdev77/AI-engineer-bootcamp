@@ -23,7 +23,7 @@ export default function ProjectLinks({
               {repoLabel(repoUrl)} ↗
             </a>
           ) : (
-            '—'
+            <span className="text-muted">none</span>
           )}
         </dd>
         <dt className="meta pt-0.5 text-faint">Live demo</dt>

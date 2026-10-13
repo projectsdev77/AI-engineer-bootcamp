@@ -97,7 +97,7 @@ export type UrlFetchResult =
 
 /** Describes one fetched link for the project prompt. */
 function describeFetch(label: string, url: string, fetched: UrlFetchResult | undefined): string {
-  if (!fetched) return `${label}: ${url} (not fetched — judge from the URL alone)`
+  if (!fetched) return `${label}: ${url} (not fetched; judge from the URL alone)`
   if (!fetched.ok) {
     return `${label}: ${url}\nCould not be verified just now: ${fetched.error}. This usually means the link is broken, private, or requires login.`
   }
@@ -133,7 +133,7 @@ ${p.demoUrl ? describeFetch('Live demo', p.demoUrl, p.demoFetch) : 'Live demo: n
 Student's description:
 ${params.content || '(none)'}
 
-Evaluate the actual retrieved repository and demo content against the rubric and instructions above — not just the URLs or the description. If the repository or demo can't be verified, or looks unrelated to the assignment, lean toward "needs_work" and tell the student exactly what to fix (e.g. "make the repository public", "the demo link returns an error").`
+Evaluate the actual retrieved repository and demo content against the rubric and instructions above, not just the URLs or the description. If the repository or demo can't be verified, or looks unrelated to the assignment, lean toward "needs_work" and tell the student exactly what to fix (e.g. "make the repository public", "the demo link returns an error").`
   } else if (params.assignmentType === 'text') {
     user = `Student's submission:
 

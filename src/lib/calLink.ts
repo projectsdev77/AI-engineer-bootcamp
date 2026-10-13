@@ -17,7 +17,7 @@ export function normalizeCalLink(input: string): { value: string | null; error: 
   if (/^https:\/\/cal\.com\/[^/]+\/.+/.test(link)) {
     return {
       value: null,
-      error: 'Use the profile link (cal.com/name), not a single event link — otherwise students only see one session type.',
+      error: 'Use the profile link (cal.com/name), not a single event link. Otherwise students only see one session type.',
     }
   }
   return { value: null, error: 'Enter a Cal.com profile link, like https://cal.com/jane-doe.' }

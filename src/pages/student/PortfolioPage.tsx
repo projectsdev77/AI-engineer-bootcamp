@@ -130,7 +130,7 @@ function ProjectCard({ item, onOpen }: { item: PortfolioItem; onOpen: () => void
   }
   if (item.state === 'locked') {
     return (
-      <div className={`${base} border-disabled bg-paper opacity-80 grayscale`} aria-label={`${item.title} — locked`}>
+      <div className={`${base} border-disabled bg-paper opacity-80 grayscale`} aria-label={`${item.title}, locked`}>
         {body}
       </div>
     )
@@ -224,8 +224,8 @@ export default function PortfolioPage() {
             <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ portfolio ]</p>
             <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Your projects</h1>
             <p className="mt-2 max-w-xl text-[15.5px] leading-relaxed text-muted">
-              Every project in the program. Each one unlocks here in full color once it's reviewed and passed — click it
-              to see your repo, live demo and write-up.
+              All the projects you'll build in the program. A project turns full color once it passes review. Click a
+              completed project to see your repo, live demo and description.
             </p>
           </div>
           {items.length > 0 && (

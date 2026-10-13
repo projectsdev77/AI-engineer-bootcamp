@@ -86,7 +86,7 @@ export default function ProjectForm({
         {touched.demo && demoError ? (
           <FieldError>{demoError}</FieldError>
         ) : (
-          <FieldHint>Where the project runs — Vercel, Streamlit, Hugging Face Spaces, etc.</FieldHint>
+          <FieldHint>Where the project runs, such as Vercel, Streamlit or Hugging Face Spaces.</FieldHint>
         )}
       </div>
 

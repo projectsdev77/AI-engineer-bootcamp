@@ -26,7 +26,7 @@ export default function QuestionsPage() {
 
   const lists: Record<Tab, typeof tickets> = { unclaimed, mine, claimed: claimedByOthers, closed }
   const empty: Record<Tab, string> = {
-    unclaimed: 'The queue is empty — every question has a mentor.',
+    unclaimed: 'The queue is empty. Every question has a mentor.',
     mine: 'Nothing on your plate. Claim a question from the queue to start helping.',
     claimed: 'No questions are being handled by other mentors right now.',
     closed: isAdmin ? 'No closed questions yet.' : "Questions you've resolved show up here.",
@@ -39,7 +39,7 @@ export default function QuestionsPage() {
         <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ student questions ]</p>
         <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Questions</h1>
         <p className="mt-1 max-w-2xl text-[15px] text-muted">
-          New questions land in the shared queue. Claim one to reply — the student sees your name — and resolve it once
+          New questions land in the shared queue. Claim one to reply (the student sees your name) and resolve it once
           the issue is solved.
         </p>
 

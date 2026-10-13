@@ -96,7 +96,7 @@ export default function TicketPage() {
         <main className="mx-auto max-w-[900px] px-4 py-10 sm:px-6">
           <Callout tone="warn" heading="Question not available">
             {error ??
-              "It doesn't exist, or it's no longer visible to you — for example, another mentor claimed it."}{' '}
+              "It doesn't exist, or it's no longer visible to you. For example, another mentor may have claimed it."}{' '}
             <Link to={listPath}>Back to {isStudent ? 'your questions' : 'the queue'}</Link>
           </Callout>
         </main>
@@ -215,7 +215,7 @@ export default function TicketPage() {
             </div>
           ) : (
             <p className="text-[14px] text-muted">
-              {isStudent ? 'Waiting for a mentor to pick this up.' : 'Unclaimed — in the shared mentor queue.'}
+              {isStudent ? 'Waiting for a mentor to pick this up.' : 'Unclaimed and waiting in the shared mentor queue.'}
             </p>
           )}
           {isAdmin && isOpen && <ReassignControl ticket={ticket} onReassign={reassign} />}
