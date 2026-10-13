@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
@@ -6,7 +6,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import Card from '@/components/ui/Card'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Field, FieldHint, Label, SelectField, TextAreaField } from '@/components/ui/Field'
-import { AttachmentPicker, FileChips } from '@/components/messages/Composer'
+import { AttachmentPicker, CodeBlockButton, FileChips } from '@/components/messages/Composer'
 import { uploadAttachments } from '@/lib/messageAttachments'
 import { MESSAGES_READ_EVENT } from '@/hooks/useUnreadMessages'
 
@@ -67,6 +67,7 @@ export default function NewQuestionPage() {
   const [files, setFiles] = useState<File[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
   const { weeks, lessons } = useCurriculumOptions(weekId)
 
   async function handleSubmit(e: FormEvent) {
@@ -163,6 +164,7 @@ export default function NewQuestionPage() {
             <div>
               <Label htmlFor="q_body">Message</Label>
               <TextAreaField
+                ref={bodyRef}
                 id="q_body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
@@ -171,14 +173,17 @@ export default function NewQuestionPage() {
                 placeholder="What are you trying to do, what did you try, and what happened?"
               />
               <FieldHint>
-                Wrap code in triple backticks (```) to keep its formatting. You can attach screenshots, PDFs or code
-                files (up to 10 MB each).
+                Use the code button (or triple backticks) to keep code formatted. You can attach screenshots, PDFs or
+                code files (up to 10 MB each).
               </FieldHint>
             </div>
 
             <div className="space-y-2">
               <FileChips files={files} onRemove={(i) => setFiles(files.filter((_, j) => j !== i))} />
-              <AttachmentPicker files={files} onChange={setFiles} onError={setError} disabled={submitting} />
+              <div className="flex items-center gap-4">
+                <CodeBlockButton textarea={bodyRef} value={body} onChange={setBody} disabled={submitting} />
+                <AttachmentPicker files={files} onChange={setFiles} onError={setError} disabled={submitting} />
+              </div>
             </div>
 
             {error && <p className="text-sm font-bold text-fail-ink">{error}</p>}

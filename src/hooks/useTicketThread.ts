@@ -122,6 +122,8 @@ export function useTicketThread(ticketId: string | undefined) {
       setError(error.message)
       return false
     }
+    // Email the newly assigned mentor — otherwise it just appears in their list unannounced.
+    if (mentorId) supabase.functions.invoke('notify-message', { body: { assignedTicketId: ticketId } }).catch(() => {})
     await refresh()
     notifyChanged()
     return true

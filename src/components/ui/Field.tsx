@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, LabelHTMLAttributes, ReactNode } from 'react'
+import type { InputHTMLAttributes, Ref, TextareaHTMLAttributes, SelectHTMLAttributes, LabelHTMLAttributes, ReactNode } from 'react'
 
 export function Label({ children, className = '', ...rest }: LabelHTMLAttributes<HTMLLabelElement> & { children: ReactNode }) {
   return (
@@ -16,7 +16,7 @@ export function TextAreaField({
   error,
   className = '',
   ...rest
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: boolean }) {
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: boolean; ref?: Ref<HTMLTextAreaElement> }) {
   return <textarea className={`field ${error ? 'field-error' : ''} ${className}`} {...rest} />
 }
 

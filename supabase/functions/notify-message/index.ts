@@ -5,7 +5,8 @@
 // their own question) is a no-op here.
 //
 // Also invoked with { closedTicketId } after a mentor resolves a question,
-// to tell the student it was closed.
+// to tell the student it was closed, and with { assignedTicketId } after an
+// admin reassigns a question, to tell the newly assigned mentor.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { escapeHtml, sendEmail } from '../_shared/resend.ts'
 import { corsHeaders, handlePreflight } from '../_shared/cors.ts'
@@ -27,16 +28,52 @@ Deno.serve(async (req) => {
 
   let messageId: string | undefined
   let closedTicketId: string | undefined
+  let assignedTicketId: string | undefined
   try {
-    ;({ messageId, closedTicketId } = await req.json())
+    ;({ messageId, closedTicketId, assignedTicketId } = await req.json())
   } catch {
     return jsonResponse({ error: 'Invalid JSON body' }, 400)
   }
-  if (!messageId && !closedTicketId) {
-    return jsonResponse({ error: 'messageId or closedTicketId is required' }, 400)
+  if (!messageId && !closedTicketId && !assignedTicketId) {
+    return jsonResponse({ error: 'messageId, closedTicketId or assignedTicketId is required' }, 400)
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+  if (assignedTicketId) {
+    const { data: ticket } = await supabase
+      .from('tickets')
+      .select('id, student_id, subject, context_label, status, claimed_by, claimed_at')
+      .eq('id', assignedTicketId)
+      .single()
+    // Only right after an assignment, so replaying the call can't be used
+    // to send the email over and over.
+    const recentlyAssigned =
+      ticket?.status === 'open' &&
+      ticket.claimed_by &&
+      ticket.claimed_at &&
+      Date.now() - new Date(ticket.claimed_at).getTime() < 10 * 60_000
+    if (!ticket || !recentlyAssigned) return jsonResponse({ ok: true, skipped: 'not_recently_assigned' })
+
+    const [{ data: mentorUser }, { data: student }] = await Promise.all([
+      supabase.auth.admin.getUserById(ticket.claimed_by),
+      supabase.from('profiles').select('full_name').eq('id', ticket.student_id).single(),
+    ])
+    const mentorEmail = mentorUser?.user?.email
+    if (!mentorEmail) return jsonResponse({ error: 'could not resolve mentor email' }, 404)
+    try {
+      await sendEmail({
+        to: mentorEmail,
+        subject: `Assigned to you: ${ticket.subject}`,
+        html: `<p>An admin assigned you a student question.</p>
+<p><strong>${escapeHtml(ticket.subject)}</strong><br>${escapeHtml(ticket.context_label)} · from ${escapeHtml(student?.full_name ?? 'a student')}</p>
+<p><a href="${SITE_URL}/questions/${ticket.id}">Open the question</a></p>`,
+      })
+    } catch (e) {
+      return jsonResponse({ ok: false, error: String(e) }, 200)
+    }
+    return jsonResponse({ ok: true })
+  }
 
   if (closedTicketId) {
     const { data: ticket } = await supabase

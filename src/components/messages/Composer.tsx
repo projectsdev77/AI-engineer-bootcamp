@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import { Button } from '@/components/ui/Button'
 import {
   ATTACHMENT_ACCEPT,
@@ -8,7 +8,10 @@ import {
 } from '@/lib/messageAttachments'
 
 /** Wraps the selection (or inserts a placeholder) in a ``` code fence. */
-function insertCodeFence(el: HTMLTextAreaElement, value: string): { value: string; cursor: number } {
+function insertCodeFence(
+  el: HTMLTextAreaElement,
+  value: string,
+): { value: string; selectionStart: number; selectionEnd: number } {
   const start = el.selectionStart
   const end = el.selectionEnd
   const selected = value.slice(start, end)
@@ -16,7 +19,49 @@ function insertCodeFence(el: HTMLTextAreaElement, value: string): { value: strin
   const lead = before.length > 0 && !before.endsWith('\n') ? '\n' : ''
   const inner = selected || 'paste your code here'
   const block = `${lead}\`\`\`\n${inner}\n\`\`\`\n`
-  return { value: before + block + value.slice(end), cursor: before.length + lead.length + 4 + inner.length }
+  const innerStart = before.length + lead.length + 4
+  // Wrapped a selection: cursor after it. Inserted the placeholder: select
+  // it, so typing or pasting replaces it.
+  return {
+    value: before + block + value.slice(end),
+    selectionStart: selected ? innerStart + inner.length : innerStart,
+    selectionEnd: innerStart + inner.length,
+  }
+}
+
+/** Wraps the textarea's selection in a ``` code block (or inserts an empty one) and puts the cursor inside. */
+export function CodeBlockButton({
+  textarea,
+  value,
+  onChange,
+  disabled,
+}: {
+  textarea: RefObject<HTMLTextAreaElement | null>
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        const el = textarea.current
+        if (!el) return
+        const next = insertCodeFence(el, value)
+        onChange(next.value)
+        requestAnimationFrame(() => {
+          el.focus()
+          el.setSelectionRange(next.selectionStart, next.selectionEnd)
+        })
+      }}
+      aria-label="Insert code block"
+      title="Insert code block"
+      className="font-mono text-[11.5px] font-bold uppercase tracking-wide text-blue-700 hover:underline disabled:opacity-50"
+    >
+      {'</>'} code
+    </button>
+  )
 }
 
 export function AttachmentPicker({
@@ -149,24 +194,7 @@ export default function Composer({ onSend }: { onSend: (body: string, files: Fil
       {fileError && <p className="text-[13px] font-bold text-fail-ink">{fileError}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              const el = textarea.current
-              if (!el) return
-              const { value, cursor } = insertCodeFence(el, draft)
-              setDraft(value)
-              requestAnimationFrame(() => {
-                el.focus()
-                el.setSelectionRange(cursor, cursor)
-              })
-            }}
-            aria-label="Insert code block"
-            title="Insert code block"
-            className="font-mono text-[11.5px] font-bold uppercase tracking-wide text-blue-700 hover:underline"
-          >
-            {'</>'} code
-          </button>
+          <CodeBlockButton textarea={textarea} value={draft} onChange={setDraft} />
           <AttachmentPicker files={files} onChange={setFiles} onError={setFileError} disabled={sending} />
         </div>
         <Button type="submit" variant="primary" size="sm" disabled={!canSend}>
