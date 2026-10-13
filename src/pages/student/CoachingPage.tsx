@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Cal, { getCalApi } from '@calcom/embed-react'
 import { supabase } from '@/lib/supabase'
 import { calPath } from '@/lib/calLink'
@@ -52,14 +52,30 @@ function MentorCard({ mentor, onSelect }: { mentor: CoachingMentor; onSelect: ()
   )
 }
 
-function BookingEmbed({ mentor }: { mentor: CoachingMentor }) {
+function BookingEmbed({ mentor, onBooked }: { mentor: CoachingMentor; onBooked: () => void }) {
   const { user, profile } = useAuth()
 
   useEffect(() => {
+    let cancelled = false
+    let detach: (() => void) | undefined
     void getCalApi().then((cal) => {
+      if (cancelled) return
       cal('ui', { theme: 'light', styles: { branding: { brandColor: '#14141E' } }, hideEventTypeDetails: false })
+      // Cal.com's confirmation screen has no way back into the app, so we
+      // surface our own next step once the booking (or a reschedule) lands.
+      const callback = () => onBooked()
+      cal('on', { action: 'bookingSuccessfulV2', callback })
+      cal('on', { action: 'rescheduleBookingSuccessfulV2', callback })
+      detach = () => {
+        cal('off', { action: 'bookingSuccessfulV2', callback })
+        cal('off', { action: 'rescheduleBookingSuccessfulV2', callback })
+      }
     })
-  }, [])
+    return () => {
+      cancelled = true
+      detach?.()
+    }
+  }, [onBooked])
 
   return (
     <Cal
@@ -75,6 +91,8 @@ function BookingEmbed({ mentor }: { mentor: CoachingMentor }) {
 
 export default function CoachingPage() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
+
   const isPaid = profile?.payment_status === 'paid'
   const { mentors, loading, error } = useCoachingMentors(isPaid)
 
@@ -82,6 +100,13 @@ export default function CoachingPage() {
   // and a refresh doesn't lose the selection.
   const [searchParams, setSearchParams] = useSearchParams()
   const selected = mentors.find((m) => m.id === searchParams.get('mentor')) ?? null
+
+  // Which mentor the student just booked, so "Done" only appears on that
+  // mentor's page — switching mentors starts a fresh booking.
+  const [bookedWith, setBookedWith] = useState<string | null>(null)
+  const selectedId = selected?.id ?? null
+  const markBooked = useCallback(() => setBookedWith(selectedId), [selectedId])
+  const booked = selected != null && bookedWith === selected.id
 
   return (
     <div className="min-h-screen bg-paper">
@@ -113,12 +138,25 @@ export default function CoachingPage() {
                   {selected.title && <p className="text-[14px] text-muted">{selected.title}</p>}
                 </div>
               </div>
-              <Button type="button" variant="secondary" size="sm" onClick={() => setSearchParams({})}>
-                ← Choose another mentor
-              </Button>
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" variant="secondary" size="sm" onClick={() => setSearchParams({})}>
+                  ← Choose another mentor
+                </Button>
+                {booked && (
+                  <Button type="button" variant="primary" size="sm" onClick={() => navigate('/dashboard')}>
+                    Done
+                  </Button>
+                )}
+              </div>
             </div>
+            {booked && (
+              <Callout tone="pass" className="mt-6">
+                You're booked with {selected.full_name ?? 'your mentor'}. The confirmation email has the Google Meet
+                link and options to reschedule or cancel.
+              </Callout>
+            )}
             <div className="mt-6 overflow-hidden rounded-panel border-2 border-ink bg-surface">
-              <BookingEmbed mentor={selected} />
+              <BookingEmbed mentor={selected} onBooked={markBooked} />
             </div>
           </section>
         ) : mentors.length === 0 ? (
