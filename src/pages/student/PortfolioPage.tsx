@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import AppNav from '@/components/layout/AppNav'
-import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
 import { AnchorButton, Button } from '@/components/ui/Button'
 import { LockIcon } from '@/components/ui/icons'
@@ -213,36 +212,17 @@ function ProjectDialog({ item, onClose }: { item: PortfolioItem | null; onClose:
 export default function PortfolioPage() {
   const { items, loading, error } = usePortfolio()
   const [open, setOpen] = useState<PortfolioItem | null>(null)
-  const completed = items.filter((i) => i.state === 'completed').length
 
   return (
     <div className="min-h-screen bg-paper">
       <AppNav />
       <main className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
-        <div className="grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
-          <div>
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ portfolio ]</p>
-            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Your projects</h1>
-            <p className="mt-2 max-w-xl text-[15.5px] leading-relaxed text-muted">
-              All the projects you'll build in the program. A project turns full color once it passes review. Click a
-              completed project to see your repo, live demo and description.
-            </p>
-          </div>
-          {items.length > 0 && (
-            <div className="rounded-panel border-2 border-ink bg-surface p-4">
-              <div className="flex items-baseline justify-between">
-                <span className="meta">Completed</span>
-                <span className="font-display text-2xl font-bold text-ink">
-                  {completed}
-                  <span className="text-base text-muted"> / {items.length}</span>
-                </span>
-              </div>
-              <div className="mt-3">
-                <ProgressBar percent={Math.round((completed / items.length) * 100)} />
-              </div>
-            </div>
-          )}
-        </div>
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ portfolio ]</p>
+        <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Your projects</h1>
+        <p className="mt-2 max-w-xl text-[15.5px] leading-relaxed text-muted">
+          All the projects you'll build in the program. A project turns full color once it passes review. Click a
+          completed project to see your repo, live demo and description.
+        </p>
 
         <div className="mt-10">
           {loading ? (
