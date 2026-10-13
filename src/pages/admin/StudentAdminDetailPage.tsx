@@ -12,6 +12,7 @@ import { Field, Label, SelectField } from '@/components/ui/Field'
 import StatusPill from '@/components/ui/StatusPill'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
+import SkillsCard from '@/components/progress/SkillsCard'
 import type { Profile } from '@/types/database'
 
 function useMentorOptions() {
@@ -222,6 +223,8 @@ export default function StudentAdminDetailPage() {
         </div>
 
         <div className="mt-6 space-y-6">
+          {studentId && <SkillsCard targetUserId={studentId} heading="Skills" />}
+
           <Card>
             <div className="flex items-center justify-between">
               <span className="meta">Account</span>

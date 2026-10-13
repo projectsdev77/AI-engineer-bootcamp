@@ -64,6 +64,8 @@ export interface Week {
   goal: string | null
   summary: string | null
   estimated_hours: number | null
+  /** Skills this week teaches; mastered by passing the week. */
+  skills: string[]
   status: PublishStatus
   published_at: string | null
   created_at: string

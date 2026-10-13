@@ -6,6 +6,7 @@ import AdminNav from '@/components/layout/AdminNav'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import StatusToggle from '@/components/admin/StatusToggle'
 import ReorderButtons from '@/components/admin/ReorderButtons'
+import SkillsInput from '@/components/admin/SkillsInput'
 import Card from '@/components/ui/Card'
 import Callout from '@/components/ui/Callout'
 import { Button } from '@/components/ui/Button'
@@ -43,7 +44,8 @@ export default function WeekEditorPage() {
   const { week, loading, refresh } = useWeek(weekId)
   const [saving, setSaving] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
-  const [form, setForm] = useState({ title: '', goal: '', summary: '', estimated_hours: '' })
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [form, setForm] = useState({ title: '', goal: '', summary: '', estimated_hours: '', skills: [] as string[] })
   const [newLessonTitle, setNewLessonTitle] = useState('')
   const [newAssignment, setNewAssignment] = useState({ title: '', type: 'text' as Assignment['assignment_type'] })
 
@@ -57,6 +59,7 @@ export default function WeekEditorPage() {
         goal: week.goal ?? '',
         summary: week.summary ?? '',
         estimated_hours: week.estimated_hours != null ? String(week.estimated_hours) : '',
+        skills: week.skills ?? [],
       })
     }
   }, [week])
@@ -64,16 +67,22 @@ export default function WeekEditorPage() {
   async function saveWeek() {
     if (!weekId) return
     setSaving(true)
-    await supabase
+    setSaveError(null)
+    const { error } = await supabase
       .from('weeks')
       .update({
         title: form.title,
         goal: form.goal || null,
         summary: form.summary || null,
         estimated_hours: form.estimated_hours ? Number(form.estimated_hours) : null,
+        skills: form.skills,
       })
       .eq('id', weekId)
     setSaving(false)
+    if (error) {
+      setSaveError(error.message)
+      return
+    }
     setJustSaved(true)
     setTimeout(() => setJustSaved(false), 3000)
     await refresh()
@@ -108,6 +117,7 @@ export default function WeekEditorPage() {
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
             <Breadcrumb items={[{ label: 'curriculum', to: '/admin/curriculum' }, { label: `week ${String(week.position).padStart(2, '0')}` }]} />
             <div className="flex items-center gap-3">
+              {saveError && <span className="text-[13px] font-bold text-fail-ink">{saveError}</span>}
               {justSaved && <span className="font-mono text-[11px] font-bold uppercase text-pass-ink">saved</span>}
               <Button type="button" variant="primary" size="sm" onClick={() => void saveWeek()} disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
@@ -157,6 +167,10 @@ export default function WeekEditorPage() {
                       Summary <span className="normal-case text-faint">· markdown · shown on the public curriculum page</span>
                     </Label>
                     <TextAreaField id="summary" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} rows={3} />
+                  </div>
+                  <div>
+                    <Label htmlFor="skills">Skills</Label>
+                    <SkillsInput id="skills" value={form.skills} onChange={(skills) => setForm({ ...form, skills })} />
                   </div>
                 </div>
               </Card>

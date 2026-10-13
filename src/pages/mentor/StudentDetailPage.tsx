@@ -8,6 +8,7 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill, { type StatusVariant } from '@/components/ui/StatusPill'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 import { useProgressOverview } from '@/hooks/useProgressOverview'
+import SkillsCard from '@/components/progress/SkillsCard'
 import { useWeeklyHours } from '@/hooks/useWeeklyHours'
 import type { Submission } from '@/types/database'
 
@@ -152,6 +153,12 @@ export default function StudentDetailPage() {
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {studentId && (
+          <div className="mt-4">
+            <SkillsCard targetUserId={studentId} heading="Skills" />
           </div>
         )}
 

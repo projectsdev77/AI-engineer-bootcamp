@@ -9,7 +9,8 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import StatusPill from '@/components/ui/StatusPill'
 import Callout from '@/components/ui/Callout'
 import { LinkButton } from '@/components/ui/Button'
-import { StarIcon, LockIcon } from '@/components/ui/icons'
+import { StarIcon, LockIcon, CheckIcon } from '@/components/ui/icons'
+import SkillsCard from '@/components/progress/SkillsCard'
 import completeIll from '@/assets/illustrations/complete.jpg'
 import { FullPageSpinner } from '@/routes/ProtectedRoute'
 
@@ -63,6 +64,37 @@ function WeeklyHoursCard() {
   )
 }
 
+/** The skills a week teaches; green once the student has passed the week. */
+function WeekSkills({ week }: { week: WeekProgress }) {
+  if (!week.skills?.length) return null
+  // A needs_work attempt still unlocks the next week, but mastery needs a pass.
+  const needsPass = week.unlocked && !week.mastered && isWeekComplete(week)
+  return (
+    <>
+      <ul className="mt-2.5 flex flex-wrap gap-1.5" aria-label="Skills">
+        {week.skills.map((skill) => (
+          <li
+            key={skill}
+            className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] font-semibold ${
+              week.mastered
+                ? 'border-pass bg-pass-bg text-pass-ink'
+                : week.unlocked
+                  ? 'border-ink/30 bg-surface text-ink'
+                  : 'border-disabled bg-transparent text-faint'
+            }`}
+          >
+            {week.mastered && <CheckIcon className="h-2.5 w-2.5" />}
+            {skill}
+          </li>
+        ))}
+      </ul>
+      {needsPass && (
+        <p className="mt-1.5 text-[12.5px] text-muted">Pass every assignment in this week to master these skills.</p>
+      )}
+    </>
+  )
+}
+
 function WeekRow({
   week,
   allWeeks,
@@ -104,11 +136,18 @@ function WeekRow({
               <ProgressBar percent={percent} />
               <span className="shrink-0 font-mono text-[11px] font-bold text-muted">{doneUnits}/{totalUnits || 0}</span>
             </div>
+            <WeekSkills week={week} />
           </>
         ) : paymentLocked ? (
-          <p className="mt-0.5 text-[14.5px] text-faint">Locked — payment required to continue</p>
+          <>
+            <p className="mt-0.5 text-[14.5px] text-faint">Locked — payment required to continue</p>
+            <WeekSkills week={week} />
+          </>
         ) : (
-          <p className="mt-0.5 text-[14.5px] text-faint">Locked — finish the previous week first</p>
+          <>
+            <p className="mt-0.5 text-[14.5px] text-faint">Locked — finish the previous week first</p>
+            <WeekSkills week={week} />
+          </>
         )}
       </div>
       <span className="shrink-0">
@@ -225,6 +264,8 @@ export default function DashboardPage() {
                 </LinkButton>
               </div>
             )}
+
+            <SkillsCard />
 
             <WeeklyHoursCard />
 

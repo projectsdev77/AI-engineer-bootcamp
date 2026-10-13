@@ -12,6 +12,18 @@ export interface WeekProgress {
   lessons_completed: number
   assignments_total: number
   assignments_done: number
+  skills: string[]
+  /** Every lesson complete and every assignment passed — stricter than isWeekComplete. */
+  mastered: boolean
+}
+
+export interface SkillProgress {
+  skill: string
+  weeks_total: number
+  weeks_mastered: number
+  mastered: boolean
+  week_positions: number[]
+  mastered_week_positions: number[]
 }
 
 export interface ProgressOverview {
