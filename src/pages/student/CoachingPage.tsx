@@ -38,16 +38,16 @@ function MentorCard({ mentor, onSelect }: { mentor: CoachingMentor; onSelect: ()
     <button
       type="button"
       onClick={onSelect}
-      className="card flex w-full flex-col items-start gap-4 text-left transition-shadow hover:shadow-app focus-visible:shadow-app"
+      className="card flex w-full items-center gap-4 text-left transition-shadow hover:shadow-app focus-visible:shadow-app"
     >
-      <Avatar name={mentor.full_name} src={mentor.avatar_url} size={64} />
-      <div className="min-w-0">
+      <Avatar name={mentor.full_name} src={mentor.avatar_url} size={56} />
+      <div className="min-w-0 flex-1">
         <p className="font-display text-lg font-bold text-ink">{mentor.full_name ?? 'Mentor'}</p>
         {mentor.title && <p className="mt-0.5 text-[14px] text-muted">{mentor.title}</p>}
+        <span className="mt-2 inline-block font-mono text-[11.5px] font-bold uppercase tracking-wide text-blue-700">
+          See availability →
+        </span>
       </div>
-      <span className="mt-auto font-mono text-[11.5px] font-bold uppercase tracking-wide text-blue-700">
-        See availability →
-      </span>
     </button>
   )
 }
@@ -112,29 +112,29 @@ export default function CoachingPage() {
     <div className="min-h-screen bg-paper">
       <AppNav />
       <main className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
-        <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ 1-on-1 coaching ]</p>
-        <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Book a coaching session</h1>
-        <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-muted">
-          Pick a mentor to see their availability, then choose a Career &amp; Tech Coaching session or Mock Interview
-          Practice. You'll get a confirmation email with the Google Meet link.
-        </p>
-        {isPaid && (
-          <Callout
-            tone="info"
-            heading="This page is for booking only"
-            className="mt-6 max-w-2xl"
-          >
-            Your booked sessions won't show up here. Find them in your confirmation email and calendar, and use the
-            links in that email to reschedule or cancel.
-          </Callout>
-        )}
+        <div className="grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+          <div>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-muted">[ 1-on-1 coaching ]</p>
+            <h1 className="mt-2 font-display text-[38px] font-bold tracking-[-0.03em] text-ink">Book a coaching session</h1>
+            <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-muted">
+              Pick a mentor to see their availability, then choose a Career &amp; Tech Coaching session or Mock
+              Interview Practice. You'll get a confirmation email with the Google Meet link.
+            </p>
+          </div>
+          {isPaid ? (
+            <Callout tone="info" heading="This page is for booking only">
+              Your booked sessions won't show up here. Find them in your confirmation email and calendar, and use the
+              links in that email to reschedule or cancel.
+            </Callout>
+          ) : (
+            <Callout tone="info" heading="Included with full access" icon={<LockIcon className="h-3.5 w-3.5" />}>
+              1-on-1 coaching with mentors is part of the full program. Contact us to complete your enrollment and
+              unlock it.
+            </Callout>
+          )}
+        </div>
 
-        {!isPaid ? (
-          <Callout tone="info" heading="Included with full access" icon={<LockIcon className="h-3.5 w-3.5" />} className="mt-8 max-w-2xl">
-            1-on-1 coaching with mentors is part of the full program. Contact us to complete your enrollment and
-            unlock it.
-          </Callout>
-        ) : loading ? (
+        {!isPaid ? null : loading ? (
           <p className="mt-10 font-mono text-xs font-bold uppercase tracking-wide text-muted">loading mentors…</p>
         ) : error ? (
           <p className="mt-10 text-sm font-bold text-fail-ink">Couldn't load mentors: {error}</p>
@@ -174,11 +174,17 @@ export default function CoachingPage() {
             No mentors are taking bookings right now. Check back soon.
           </p>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {mentors.map((mentor) => (
-              <MentorCard key={mentor.id} mentor={mentor} onSelect={() => setSearchParams({ mentor: mentor.id })} />
-            ))}
-          </div>
+          <section className="mt-10">
+            <div className="flex items-center gap-4 border-b-2 border-ink pb-3">
+              <h2 className="font-mono text-xs font-bold uppercase tracking-[0.1em] text-ink">Mentors</h2>
+              <span className="font-mono text-xs text-muted">{mentors.length} available</span>
+            </div>
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {mentors.map((mentor) => (
+                <MentorCard key={mentor.id} mentor={mentor} onSelect={() => setSearchParams({ mentor: mentor.id })} />
+              ))}
+            </div>
+          </section>
         )}
       </main>
     </div>
